@@ -1,0 +1,30 @@
+<VirtualHost *:80>
+    ServerName	restful.yourdomain
+
+    # Character encoding
+    AddDefaultCharset utf-8
+
+    # Log
+    LogFormat "%v %h %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\"" vhost_combined
+    CustomLog /var/log/apache2/restful-access_log vhost_combined
+
+    ErrorLog /var/log/apache2/restful-error_log
+    #LogLevel debug
+
+    DocumentRoot "/path/to/your/htdocs"
+    <Directory "/path/to/your/htdocs">
+        Options -Indexes MultiViews FollowSymLinks
+        AllowOverride None
+        Order allow,deny
+        Allow from all
+
+        <IfModule rewrite_module>
+            RewriteEngine On
+            RewriteCond %{REQUEST_FILENAME} -s [OR]
+            RewriteCond %{REQUEST_FILENAME} -l [OR]
+            RewriteCond %{REQUEST_FILENAME} -d
+            RewriteRule ^.*$ - [NC,L]
+            RewriteRule ^.*$ api.php [NC,L]
+        </IfModule>
+    </Directory>
+</VirtualHost>
