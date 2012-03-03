@@ -13,10 +13,10 @@ class Members
      * @param string $config
      * @return void
      */
-    public function __construct($file)
+    public function __construct($config)
     {
         //$this->_members = include($file);
-        $handle = fopen($file, 'r');
+        $handle = fopen(__DIR__ . '/' . $config['data'], 'r');
         while ($record = fgetcsv($handle, 256))
             $this->_members[] = $record;
         fclose($handle);
