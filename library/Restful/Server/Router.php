@@ -111,7 +111,6 @@ class Restful_Server_Router
                     }
                 }
             }
-
         }
 
         // Request
