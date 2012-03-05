@@ -51,7 +51,6 @@ class Restful_Server_Router
      * @var array
      */
     protected $_params = array(
-                            'path'          => null,
                             'resource'      => null,
                             'method'        => null,
                             'params'        => null,
@@ -113,19 +112,25 @@ class Restful_Server_Router
             }
         }
 
-        // Request
+        // Path
         if ($path = trim(parse_url(substr($request->uri, strlen($this->_baseUrl)), PHP_URL_PATH), '/'))
         {
-            $this->_params['path'] = $path;
-
             $parts = explode('/', $path);
             $parts[0] = strtolower($parts[0]);
             if (isset($this->_resources[$parts[0]]) && ($request->method == ($this->_resources[$parts[0]]->httpMethod())))
             {
-                $this->_params['resource'] = $parts[0];
+                $resource = $parts[0];
 
-                if (!empty($parts[1]))
+                if (empty($parts[1]))
                 {
+                    $this->_params['resource'] = 'discover';
+                    $this->_params['method']   = 'methods';
+                    $this->_params['params'] = array('resource' => $resource);
+                }
+                else
+                {
+                    $this->_params['resource'] = $resource;
+
                     // Check for extension
                     $method = explode('.', $parts[1], 2);
                     if (isset($method[1]))
@@ -153,9 +158,14 @@ class Restful_Server_Router
                 }
             }
         }
+        else
+        {
+            $this->_params['resource'] = 'discover';
+            $this->_params['method']   = 'resources';
+            $this->_params['params'] = array();
+        }
 
         if ($this->_params['contentType'] &&
-            $this->_params['path'] &&
             $this->_params['resource'] &&
             $this->_params['method'] &&
             is_array($this->_params['params']))
@@ -165,11 +175,18 @@ class Restful_Server_Router
     /**
      * Give the selcted params values
      *
+     * @param string $elem
      * @return array
      */
-    public function getRouteParams()
+    public function getRouteParams($elem = null)
     {
-        return $this->_params;
+        if ($elem)
+        {
+            if (isset($this->_params[$elem]))
+                return $this->_params[$elem];
+        }
+        else
+            return $this->_params;
     }
 
     /**

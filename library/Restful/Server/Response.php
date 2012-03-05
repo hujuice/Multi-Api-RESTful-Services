@@ -97,7 +97,7 @@ class Restful_Server_Response
      * HTML response template
      * @var string
      */
-    protected $_htmlTemplate = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+    protected static $htmlTemplate = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
 <title>Restful Services Discovery</title>
@@ -106,6 +106,7 @@ class Restful_Server_Response
 </head>
 <body style="margin: 0">
 <h1 style="margin: 0; padding: 1em; background-color: #437"><a href="/" style="color: #fff; text-decoration: none">Restful Services Discovery</a></h1>
+<!-- {dinamic} -->
 </body>
 </html>';
 
@@ -127,6 +128,24 @@ class Restful_Server_Response
      */
     protected $_template;
 
+    public static function array2html($array)
+    {
+        if ($array)
+        {
+            $html = '<dl style="border: 1px dotted #999; margin: 0.5em">';
+            foreach ($array as $key => $value)
+            {
+                $html.= '<dt style="float: left; font-weight: bold">' . htmlspecialchars($key) . '</dt>';
+                if (is_scalar($value))
+                    $html .= '<dd style="padding-left: 4em">' . htmlspecialchars($value) . '</dd>';
+                else
+                    $html .= '<dd style="clear: left">' . self::array2html((array) $value) . '</dd>';
+            }
+            $html .= '</dl>';
+            return $html;
+        }
+    }
+
     /**
      * Generate immediately a http output
      *
@@ -139,14 +158,14 @@ class Restful_Server_Response
      * @param array $extra_headers
      * @return void
      */
-    public static function response($status, $body = null, $content_type = 'text/plain', $max_age = 0, $last_modified = null, $etag = null, $extra_headers = array())
+    public static function raw($status, $body = null, $content_type = 'text/plain', $max_age = 0, $last_modified = null, $etag = null, $extra_headers = array())
     {
         // Headers
         $headers = array();
 
         // Status
         if (!isset(self::$statuses[$status]))
-            self::response(500, 'Internal status code inconcistency.');
+            self::raw(500, 'Internal status code inconcistency.');
         else
             $headers[] = self::$statuses[$status];
 
@@ -158,15 +177,15 @@ class Restful_Server_Response
         if (in_array($content_type, self::$contentTypes))
             $headers[] = 'Content-Type: ' . $content_type;
         else
-            self::response(500, 'Internal Content-Type inconcistency.');
+            self::raw(500, 'Internal Content-Type inconcistency.');
 
         // Cache headers
         if ($max_age && ($max_age > 0))
         {
             if (!$last_modified)
-                $last_modified = date(DATE_RFC850);
+                $last_modified = time();
 
-            $headers[] = 'Last-Modified: ' . $last_modified;
+            $headers[] = 'Last-Modified: ' . date(DATE_RFC850, $last_modified);
             $headers[] = 'Cache-Control: max-age=' . (integer) $max_age . ', must-revalidate';
 
             if ($etag)
@@ -191,55 +210,80 @@ class Restful_Server_Response
     }
 
     /**
-     * Prepare a response
+     * Get a complete set of info and give an HTTP response
      *
-     * @param integer $status
-     * @param string $content_type
-     * @return void
-     * @throw Exception
-     */
-    public function __construct($status, $content_type)
-    {
-        if (isset(self::$statuses[$status]))
-            $this->_status = $status;
-        else
-            throw new Exception('Unknown status code ' . $status . '.', 500);
-
-        if (in_array((string) $content_type, self::$contentTypes))
-            $this->_contentType = $content_type;
-        else
-            throw new Exception('Unknown content type \'' . $content_type . '\'.', 500);
-    }
-
-    /**
-     * Response
-     *
-     * @param array $data
-     * @param integer $max_age
-     * @param string $last_modified
-     * @param string $etag
+     * @param array $info
      * @return void
      */
-    public function render($data, $max_age = 0, $last_modified = null, $etag = null)
+    public static function response($info)
     {
-        switch($this->_contentType)
+        $status = $info['status'];
+        if (isset($info['route']['contentType']))
+            $content_type = $info['route']['contentType'];
+        else
+            $content_type = self::$statuses['txt'];
+
+        $etag = md5(serialize(array('data' => $info['data'], 'contentType' => $content_type)));
+
+        switch($content_type)
         {
             case 'application/json':
-                $body = json_encode($data);
+                $body = json_encode($info['data']);
                 break;
             case 'application/xml':
-                $body = wddx_serialize_value($data);
+                $body = wddx_serialize_value($info['data']);
                 break;
             case 'text/html':
-                $html  = '<div style="padding: 1em"><h2>Response body</h2><pre>' . print_r($data['response']['Data'], true) . '</pre></div>';
-                $html .= '<div style="padding: 1em; background-color: #ccc"><h2>Full dialog</h2><pre>' . print_r($data, true) . '</pre></div>';
-                $body = preg_replace('/<\/h1><\/body>/', '</h1>' . $html . '</body>', str_replace("\n", '', $this->_htmlTemplate));
+                $body = preg_replace('/<!-- \{dinamic\} -->/', self::array2html($info['data']), str_replace("\n", '', self::$htmlTemplate));
                 break;
             case 'text/plain':
-                $body = print_r($data, true);
+                $body = print_r($info['data'], true);
                 break;
         }
 
-        self::response($this->_status, $body, $this->_contentType, $max_age, $last_modified, $etag);
+        // Simply validate!
+        if (!$info['debug'] &&
+            ((200 == $status) || (4 == $status[0])) &&
+            ((strtotime($info['request']->ifModifiedSince) >= $info['cache']['lastModified']) || ($info['request']->ifMatch == $etag)))
+        {
+            $status = 304;
+            $body = null;
+        }
+
+        if (!empty($_GET['debug']) && (self::$contentTypes['html'] == $content_type)) // Dump debug info
+        {
+            $html  = '<div style="background-color: #eee; padding: 0.5em">';
+
+            $html .= '<h2>Request</h2>';
+            $html .= '<p style="font-size: 1.5em; font-weight: bold"><tt>' . $info['request']->method . ' ' . $info['request']->uri . htmlspecialchars(http_build_query($info['request']->query)) . '</tt></p>';
+            $request_headers = apache_request_headers();
+            $html .= '<div><tt>';
+            foreach ($request_headers as $label => $content)
+                $html .= $label . ': ' . $content . '<br />';
+            $html .= '</tt></div>';
+            $html .= '<p>POST data:</p><pre>' . print_r($info['request']->data, true) . '</pre>';
+
+            $html .= '<h2>Routing</h2>';
+            $html .= '<pre>' . print_r($info['route'], true) . '</pre>';
+
+            $html .= '<h2>Status code</h2>';
+            $html .= '<p style="font-size: 1.5em; font-weight: bold"><tt>' . $info['status'] . '</tt></p>';
+
+            $html .= '<h2>Response headers</h2>';
+            /* TODO Find a way to dump them
+            $response_headers = apache_response_headers();
+            $html .= '<div><tt>';
+            foreach ($response_headers as $label => $content)
+                $html .= $label . ': ' . $content . '<br />';
+            $html .= '</tt></div>';
+            */
+            $html .= '<div><tt>Too soon! Use <a href="http://getfirebug.com/">Firebug</a> for <a href="http://www.mozilla.org/en-US/firefox/fx/">Firefox</a> or equivalent.</tt></div>';
+
+            $html .= '</div>';
+
+            $body = preg_replace('/<\/body>/', $html . '</body>', $body);
+        }
+
+        self::raw($status, $body, $content_type, $info['cache']['maxAge'], $info['cache']['lastModified'], $etag);
     }
 }

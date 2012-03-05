@@ -16,13 +16,13 @@ class Members
     /**
      * Read data from a file
      *
-     * @param string $data
+     * @param string $data Path of data file
      * @return void
      */
     public function __construct($data)
     {
         //$this->_members = include($file);
-        $handle = fopen(__DIR__ . '/' . $data, 'r');
+        $handle = fopen(__DIR__ . DIRECTORY_SEPARATOR . $data, 'r');
         while ($record = fgetcsv($handle, 256))
             $this->_members[] = $record;
         fclose($handle);

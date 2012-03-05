@@ -100,7 +100,7 @@ class Restful_Server
         if ($this->_config['debug'])
             return false; // Back to ordinary errors
         else
-            Restful_Server_Response::response(500, 'Something went wrong in the framework.' . "\n" . $errstr, 'text/plain', 0, null, array()); // Will exit
+            Restful_Server_Response::raw(500, 'Something went wrong in the framework.' . "\n" . $errstr, 'text/plain', 0, null, array()); // Will exit
     }
 
     /**
@@ -124,10 +124,10 @@ class Restful_Server
                     "\n" . 'Stack trace:' . "\n" . $exception->getTraceAsString() . "\n" .
                     $this->_digException($exception);
 
-            Restful_Server_Response::response($code, $body, 'text/plain', 0, null, array()); // Will exit
+            Restful_Server_Response::raw($code, $body, 'text/plain', 0, null, array()); // Will exit
         }
         else
-            Restful_Server_Response::response($code, 'Something went wrong in the framework.' . "\n" . $exception->getMessage(), 'text/plain', 0, null, array()); // Will exit
+            Restful_Server_Response::raw($code, 'Something went wrong in the framework.' . "\n" . $exception->getMessage(), 'text/plain', 0, null, array()); // Will exit
     }
 
     /**
@@ -165,9 +165,12 @@ class Restful_Server
         // API behaviour
         $this->_config = array_merge($this->_config, array_filter($config['server']));
 
-        // Resources
+        $this->_resources = array();
         foreach($config['resources'] as $resourceName => $resourceConfig)
             $this->_resources[strtolower($resourceName)] = new Restful_Server_Resource($resourceConfig);
+
+        // Add the Discover resource
+        $this->_resources['discover'] = new Restful_Server_ResourceInternal('Restful_Server_Discover', array('resources' => $this->_resources, 'baseUrl' => $this->_config['baseUrl']));
 
         // Route
         $this->_router = new Restful_Server_Router($this->_resources, $this->_config['baseUrl']);
@@ -179,132 +182,82 @@ class Restful_Server
      */
     public function run()
     {
-        // Request
-        try
+        $request = new Restful_Server_Request();
+
+        if ($this->_router->route($request))
         {
-            $request = new Restful_Server_Request();
+            // Success!
+            $status = 200;
+            $data = $this->_resources[$this->_router->getRouteParams('resource')]->exec($this->_router->getRouteParams('method'), $this->_router->getRouteParams('params'));
 
-            if ($this->_router->route($request))
+            // Try to guess a $last_modified value and format
+            if (isset($data['lastModified']))
+                $last_modified = $data['lastModified'];
+            else if (isset($data['lastmod']))
+                $last_modified = $data['lastmod'];
+            else if (isset($data['modified']))
+                $last_modified = $data['modified'];
+            else if (isset($data['last_modified']))
+                $last_modified = $data['last_modified'];
+            else
+                $last_modified = 0;
+            if ($last_modified)
             {
-                // Success!
-                $status = 200;
-
-                $routeParams = $this->_router->getRouteParams();
-                $content_type       = $routeParams['contentType'];
-                $path               = $routeParams['path'];
-                $resource           = $routeParams['resource'];
-                $method             = $routeParams['method'];
-                $params             = $routeParams['params'];
-
-                $data = $this->_resources[$resource]->exec($method, $params);
-
-                $max_age = $this->_resources[$resource]->maxAge();
-
-                // Try to guess a $last_modified value and format
-                if (isset($data['lastModified']))
-                    $last_modified = $data['lastModified'];
-                else if (isset($data['lastmod']))
-                    $last_modified = $data['lastmod'];
-                else if (isset($data['modified']))
-                    $last_modified = $data['modified'];
-                else if (isset($data['last_modified']))
-                    $last_modified = $data['last_modified'];
-                else
-                    $last_modified = 0;
-                if ($last_modified)
+                if (!@date(DATE_RFC850, $last_modified)) // Timestamp
                 {
-                    if (!@date(DATE_RFC850, $last_modified)) // Timestamp
-                    {
-                        if (@date(DATE_RFC850, @strtotime($last_modified))) // String format
-                            $last_modified = strtotime($last_modified);
-                        else
-                            $last_modified = 0;
-                    }
+                    if (@date(DATE_RFC850, @strtotime($last_modified))) // String format
+                        $last_modified = strtotime($last_modified);
+                    else
+                        $last_modified = time();
                 }
             }
             else
-            {
-                // Error investigation
-                $routeParams = $this->_router->getRouteParams();
-
-                $status = 400; // Bad request
-                $content_type = $routeParams['contentType']
-                                ? $routeParams['contentType']
-                                : 'text/plain';
-                $data = array('You MUST specify a valid resource and method, with appropriate params.
-Try to navigate http://' . $_SERVER['SERVER_NAME'] . '/' . $this->_config['baseUrl'] . ' with your preferred browser or any device that prefers \'text/html\' to learn more.');
-                $max_age = 3600;
                 $last_modified = time();
-
-                // If a browser visit the home page or a resource home page...
-                if ('text/html' == $content_type)
-                {
-                    if (!$routeParams['path'])
-                    {
-                        $status = 200;
-                        $data = $this->_router->discover();
-                    }
-                    else if ($routeParams['resource'])
-                    {
-                        $status = 200;
-                        $data = $this->_router->discover($routeParams['resource']);
-                    }
-                }
-            }
         }
-        catch (Exception $e)
+        else
         {
-            if(!$status = $e->getCode())
-                $status = 500;
-            $content_type = 'text/plain';
-            $data = array($e->getMessage());
-            $max_age = 0;
+            $message = '';
+            if (!$this->_router->getRouteParams('resource'))
+            {
+                $status = 404;
+                $message .= 'Resource not found.' . PHP_EOL;
+            }
+            else if (!$this->_router->getRouteParams('method'))
+            {
+                $status = 404;
+                $message .= 'Method not found for the resource \'' . $this->_router->getRouteParams('resource') . '\'.' . PHP_EOL;
+            }
+            else
+            {
+                $status = 400;
+                if (!is_array($this->_router->getRouteParams('params')))
+                    $message .= 'Invalid parameters.' . PHP_EOL;
+                if (!$this->_router->getRouteParams('contentType'))
+                    $message .= 'The requested Content-Type(s) is (are) not available.' . PHP_EOL;
+            }
+            $message .= PHP_EOL . 'You MUST specify a valid resource and method, with appropriate params.
+Try to navigate http://' . $_SERVER['SERVER_NAME'] . '/' . $this->_config['baseUrl'] . ' with your preferred browser to learn more.' . PHP_EOL;
+
+            $data = array($message);
             $last_modified = time();
         }
 
-        // Etag
-        $etag = md5(serialize(array('data' => $data, 'contentType' => $content_type)));
+        if ($this->_router->getRouteParams('resource'))
+            $max_age = $this->_resources[$this->_router->getRouteParams('resource')]->maxAge();
+        else
+            $max_age = 3600; // An arbitrary value
 
-        // Simply validate!
-        if (!$this->_config['debug'] &&
-            ((200 == $status) || (4 == $status[0])) &&
-            ((strtotime($request->ifModifiedSince) >= $last_modified) || ($request->ifMatch == $etag)))
-        {
-            $status = 304;
-            $data = null;
-        }
-
-        // Last modified as RFC 850
-        $last_modified = date(DATE_RFC850, $last_modified);
-
-        // Rich HTML response
-        if ('text/html' == $content_type)
-        {
-            $rich = array();
-            $rich['request'] = array(
-                                    'HTTP Method'       => $request->method,
-                                    'URI path'          => $request->uri,
-                                    'Query string'      => $request->query,
-                                    'POST data'         => $request->data,
-                                    'Accept'            => implode(', ', $request->accept),
-                                    'If-Modified-Since' => $request->ifModifiedSince,
-                                    'If-Match'          => $request->ifMatch,
-                                    );
-            if ($this->_config['debug'])
-                $rich['resource'] = $this->_router->getRouteParams();
-            //$rich['data'] = $data;
-            $rich['response'] = array(
-                                    'Status code'   => $status,
-                                    'Content-Type'  => $content_type,
-                                    'Data'          => $data,
-                                    'max-age'       => $max_age,
-                                    'Last-Modified' => $last_modified,
-                                    'Etag'          => $etag,
-                                    );
-            $data = $rich;
-        }
-
-        $response = new Restful_Server_Response($status, $content_type);
-        $response->render($data, $max_age, $last_modified, $etag);
+        $response = array(
+                        'request'   => $request,
+                        'route'     => $this->_router->getRouteParams(),
+                        'status'    => $status,
+                        'data'      => $data,
+                        'cache'     => array(
+                                            'lastModified'  => $last_modified,
+                                            'maxAge'        => $max_age,
+                                            ),
+                        'debug'     => $this->_config['debug'],
+                        );
+        Restful_Server_Response::response($response);
     }
 }
