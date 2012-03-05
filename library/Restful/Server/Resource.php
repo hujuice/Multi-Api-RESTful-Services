@@ -84,6 +84,75 @@ class Restful_Server_Resource
     }
 
     /**
+     * Analyze the method params
+     *
+     * @param string $methodName
+     * @return array
+     */
+    protected function _methodParams($methodName)
+    {
+        $method = $this->_reflection->getMethod($methodName);
+
+        // Try to read types from DocComment
+        $types = array();
+
+        $comment = $this->_docComment($method->getDocComment());
+        $comment = $this->_key2lower($comment['params']);
+
+        // Build the params list
+        $params = array();
+        foreach ($method->getParameters() as $param)
+        {
+            $name = strtolower($param->getName());
+            $params[$name] = array(
+                                    'position'      => $param->getPosition(),
+                                    'is structured' => $param->isArray(),
+                                    'has default'   => $param->isDefaultValueAvailable(),
+                                    'is optional'   => $param->isOptional(),
+                                    );
+            if ($params[$name]['is optional'])
+                $params[$name]['defaults to'] = $param->getDefaultValue();
+
+            if (isset($comment[$name]))
+            {
+                $params[$name]['type'] = $comment[$name]['type'];
+                $params[$name]['desc'] = $comment[$name]['desc'];
+            }
+        }
+        return $params;
+    }
+
+    /**
+     * Map input params to method params
+     *
+     * @param array $methodParams
+     * @param arrat $inputParams
+     * @return array
+     */
+    protected function _mapParams($methodParams, $inputParams)
+    {
+        $inputParams = $this->_key2lower($inputParams);
+        $params = array();
+
+        foreach($methodParams as $name => $value)
+        {
+            if (isset($inputParams[$name]))
+            {
+                if (!$value['is structured'] && !is_scalar($inputParams[$name]))
+                    return;
+                else if ($value['is structured'] && is_scalar($inputParams[$name]))
+                    $params[$name] = (array) $inputParams[$name];
+                else
+                    $params[$name] = $inputParams[$name];
+            }
+            else if (!$value['is optional'])
+                return;
+        }
+
+        return $params;
+    }
+
+    /**
      * Change array key to lower
      *
      * @param array $array
@@ -121,6 +190,18 @@ class Restful_Server_Resource
         require_once(API_PATH . $this->_config['resource']['path'] . DIRECTORY_SEPARATOR . $this->_config['resource']['class'] . '.php');
 
         $this->_reflection = new ReflectionClass($this->_config['resource']['class']);
+
+        // Constructor
+        try
+        {
+            $constructorParams = $this->_methodParams('__construct');
+            $this->_config['construct'] = $this->_mapParams($constructorParams, $this->_config['construct']);
+        }
+        catch (Exception $e)
+        {
+            //$this->_config['construct'] = null;
+            throw $e;
+        }
     }
 
     /**
@@ -189,37 +270,7 @@ class Restful_Server_Resource
     public function getParams($method)
     {
         if ($methodName = $this->checkMethod($method))
-        {
-            $method = $this->_reflection->getMethod($methodName);
-
-            // Try to read types from DocComment
-            $types = array();
-
-            $comment = $this->_docComment($method->getDocComment());
-            $comment = $this->_key2lower($comment['params']);
-
-            // Build the params list
-            $params = array();
-            foreach ($method->getParameters() as $param)
-            {
-                $name = strtolower($param->getName());
-                $params[$name] = array(
-                                        'position'      => $param->getPosition(),
-                                        'is structured' => $param->isArray(),
-                                        'has default'   => $param->isDefaultValueAvailable(),
-                                        'is optional'   => $param->isOptional(),
-                                        );
-                if ($params[$name]['is optional'])
-                    $params[$name]['defaults to'] = $param->getDefaultValue();
-
-                if (isset($comment[$name]))
-                {
-                    $params[$name]['type'] = $comment[$name]['type'];
-                    $params[$name]['desc'] = $comment[$name]['desc'];
-                }
-            }
-            return $params;
-        }
+            return $this->_methodParams($methodName);
         else
             throw new Exception('Unknown method \'' . $method . '\'.');
     }
@@ -240,24 +291,8 @@ class Restful_Server_Resource
         {
             $params = $this->_key2lower($params);
             $methodParams = $this->getParams($method);
-            $goodParams = array();
 
-            foreach($methodParams as $name => $value)
-            {
-                if (isset($params[$name]))
-                {
-                    if (!$value['is structured'] && !is_scalar($params[$name]))
-                        return;
-                    else if ($value['is structured'] && is_scalar($params[$name]))
-                        $goodParams[$name] = (array) $params[$name];
-                    else
-                        $goodParams[$name] = $params[$name];
-                }
-                else if (!$value['is optional'])
-                    return;
-            }
-
-            return $goodParams;
+            return $this->_mapParams($methodParams, $params);
         }
         catch (Exception $e)
         {
@@ -293,7 +328,8 @@ class Restful_Server_Resource
 
         try
         {
-            $model = new $this->_config['resource']['class']($this->_config['model']);
+            //$model = new $this->_config['resource']['class']($this->_config['construct']);
+            $model = $this->_reflection->newInstanceArgs($this->_config['construct']);
             return call_user_func_array(array($model, $method), $params);
         }
         catch (Exception $e)
