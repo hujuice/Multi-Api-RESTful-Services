@@ -87,6 +87,31 @@ class Restful_Server_Router
                 $this->_params['contentType'] = $content_type;
                 break;
             }
+            else if ('*/' == substr($content_type, 0, 2))
+            {
+                $subtype = substr($content_type, 1); // Starts with '/' to be comparable with strstr
+                foreach (Restful_Server_Response::$contentTypes as $allowed)
+                {
+                    if (strstr($allowed, '/') == $subtype)
+                    {
+                        $this->_params['contentType'] = $allowed;
+                        break 2;
+                    }
+                }
+            }
+            else if ('/*' == substr($content_type, -2))
+            {
+                $type = substr($content_type, 0, -2); // Now strstr will exclude the needle (see docs)
+                foreach (Restful_Server_Response::$contentTypes as $allowed)
+                {
+                    if (strstr($allowed, '/', true) == $subtype)
+                    {
+                        $this->_params['contentType'] = $allowed;
+                        break 2;
+                    }
+                }
+            }
+
         }
 
         // Request

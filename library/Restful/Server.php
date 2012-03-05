@@ -274,6 +274,9 @@ Try to navigate http://' . $_SERVER['SERVER_NAME'] . '/' . $this->_config['baseU
             $data = null;
         }
 
+        // Last modified as RFC 850
+        $last_modified = date(DATE_RFC850, $last_modified);
+
         // Rich HTML response
         if ('text/html' == $content_type)
         {
