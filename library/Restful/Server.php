@@ -266,7 +266,9 @@ Try to navigate http://' . $_SERVER['SERVER_NAME'] . '/' . $this->_config['baseU
         $etag = md5(serialize(array('data' => $data, 'contentType' => $content_type)));
 
         // Simply validate!
-        if (!$this->_config['debug'] && (200 == $status) && (strtotime($request->ifModifiedSince) >= $last_modified) || ($request->ifMatch == $etag))
+        if (!$this->_config['debug'] &&
+            ((200 == $status) || (4 == $status[0])) &&
+            ((strtotime($request->ifModifiedSince) >= $last_modified) || ($request->ifMatch == $etag)))
         {
             $status = 304;
             $data = null;

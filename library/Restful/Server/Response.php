@@ -231,9 +231,9 @@ class Restful_Server_Response
                 $body = wddx_serialize_value($data);
                 break;
             case 'text/html':
-                $html  = '<h2>Response body</h2><pre>' . print_r($data['response']['Data'], true) . '</pre>';
-                $html .= '<h2>Full dialog</h2><pre>' . print_r($data, true) . '</pre>';
-                $body = preg_replace('/<\/h1><\/body>/', $html, str_replace("\n", '', $this->_htmlTemplate));
+                $html  = '<div style="padding: 1em"><h2>Response body</h2><pre>' . print_r($data['response']['Data'], true) . '</pre></div>';
+                $html .= '<div style="padding: 1em; background-color: #ccc"><h2>Full dialog</h2><pre>' . print_r($data, true) . '</pre></div>';
+                $body = preg_replace('/<\/h1><\/body>/', '</h1>' . $html . '</body>', str_replace("\n", '', $this->_htmlTemplate));
                 break;
             case 'text/plain':
                 $body = print_r($data, true);
