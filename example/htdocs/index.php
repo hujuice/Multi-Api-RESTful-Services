@@ -5,10 +5,10 @@ set_include_path(implode(PATH_SEPARATOR, array(
     get_include_path(),
 )));
 
-define('RESTFUL_PATH', realpath(__DIR__ . '/..'));
+define('API_PATH', realpath(__DIR__ . '/..'));
 
 require_once('Restful/Server.php');
-$restJson = new Restful_Server(RESTFUL_PATH . '/config.ini');
+$restJson = new Restful_Server(API_PATH . '/config.ini');
 
 // GO GO GO!!!
 $restJson->run();

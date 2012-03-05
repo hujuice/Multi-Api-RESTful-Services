@@ -87,11 +87,33 @@ class Restful_Server_Response
      * @var array
      */
     public static $contentTypes = array(
-                                    'application/json',
-                                    'application/xml',
-                                    'text/html',
-                                    'text/plain',
+                                    'json'  => 'application/json',
+                                    'xml'   => 'application/xml',
+                                    'html'  => 'text/html',
+                                    'txt'   => 'text/plain',
                                     );
+
+    /**
+     * HTML response template
+     * @var string
+     */
+    protected $_htmlTemplate = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<title>Restful Services Discovery</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="description" content="Start page for the restful services." />
+</head>
+<body style="margin: 0">
+<h1 style="margin: 0; padding: 1em; background-color: #437"><a href="/" style="color: #fff; text-decoration: none">Restful Services Discovery</a></h1>
+</body>
+</html>';
+
+    /**
+     * HTTP Status code
+     * @var integer
+     */
+    protected $_status;
 
     /**
      * Content-Type
@@ -100,17 +122,24 @@ class Restful_Server_Response
     protected $_contentType;
 
     /**
+     * Template path
+     * @var string
+     */
+    protected $_template;
+
+    /**
      * Generate immediately a http output
      *
      * @param integer $status
      * @param string $body
      * @param string $content_type
-     * @param string $last_modified
      * @param integer $max_age
+     * @param string $last_modified
+     * @param string $etag
      * @param array $extra_headers
      * @return void
      */
-    public static function response($status, $body = null, $content_type = 'text/plain', $max_age = 0, $last_modified = null, $extra_headers = array())
+    public static function response($status, $body = null, $content_type = 'text/plain', $max_age = 0, $last_modified = null, $etag = null, $extra_headers = array())
     {
         // Headers
         $headers = array();
@@ -134,14 +163,14 @@ class Restful_Server_Response
         // Cache headers
         if ($max_age && ($max_age > 0))
         {
-            if (!$last_modified || ($last_modified < 0))
-                $last_modified = time();
+            if (!$last_modified)
+                $last_modified = date(DATE_RFC850);
 
-            $headers[] = 'Last-Modified: ' . date(DATE_RFC850, $last_modified);
+            $headers[] = 'Last-Modified: ' . $last_modified;
             $headers[] = 'Cache-Control: max-age=' . (integer) $max_age . ', must-revalidate';
 
-            if ($body)
-                $headers[] = 'Etag: ' . md5($body);
+            if ($etag)
+                $headers[] = 'Etag: ' . $etag;
         }
         else
             $headers[] = 'Cache-Control: no-cache';
@@ -156,37 +185,42 @@ class Restful_Server_Response
         // Go!
         foreach ($headers as $header)
             header($header);
-        echo $body;
+        if ($body)
+            echo $body;
         exit;
     }
 
     /**
      * Prepare a response
-     * @param array $content_types
+     *
+     * @param integer $status
+     * @param string $content_type
      * @return void
+     * @throw Exception
      */
-    public function __construct($content_types, $template = null)
+    public function __construct($status, $content_type)
     {
-        $this->_contentType = '';
-        foreach($content_types as $content_type)
-        {
-            if (in_array((string) $content_type, self::$contentTypes))
-            {
-                $this->_contentType = $content_type;
-                break;
-            }
-        }
+        if (isset(self::$statuses[$status]))
+            $this->_status = $status;
+        else
+            throw new Exception('Unknown status code ' . $status . '.', 500);
 
-        if (!$this->_contentType)
-            throw new Exception('The requested Content-Type "' . $content_type . '" is not available.', 406);
+        if (in_array((string) $content_type, self::$contentTypes))
+            $this->_contentType = $content_type;
+        else
+            throw new Exception('Unknown content type \'' . $content_type . '\'.', 500);
     }
 
     /**
      * Response
      *
+     * @param array $data
+     * @param integer $max_age
+     * @param string $last_modified
+     * @param string $etag
      * @return void
      */
-    public function render($data, $max_age = 0, $last_modified = null)
+    public function render($data, $max_age = 0, $last_modified = null, $etag = null)
     {
         switch($this->_contentType)
         {
@@ -197,14 +231,15 @@ class Restful_Server_Response
                 $body = wddx_serialize_value($data);
                 break;
             case 'text/html':
+                $html  = '<h2>Response body</h2><pre>' . print_r($data['response']['Data'], true) . '</pre>';
+                $html .= '<h2>Full dialog</h2><pre>' . print_r($data, true) . '</pre>';
+                $body = preg_replace('/<\/h1><\/body>/', $html, str_replace("\n", '', $this->_htmlTemplate));
                 break;
             case 'text/plain':
                 $body = print_r($data, true);
                 break;
-            default:
-                throw new Exception('Internal Content-Type inconcistency.', 500);
         }
 
-        self::response(200, $body, $this->_contentType, $max_age, $last_modified);
+        self::response($this->_status, $body, $this->_contentType, $max_age, $last_modified, $etag);
     }
 }

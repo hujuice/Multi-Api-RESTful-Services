@@ -35,6 +35,12 @@
 class Restful_Server_Request
 {
     /**
+     * Supported HTTP methods
+     * @var array
+     */
+    public static $httpMethods = array('GET', 'POST', 'PUT', 'DELETE');
+
+    /**
      * Method
      * @var string
      */
@@ -50,13 +56,7 @@ class Restful_Server_Request
      * Accept
      * @var array
      */
-    public $accept = array('*/*' => '0.0');
-
-    /**
-     * Accept language
-     * @var array
-     */
-    public $acceptLanguage = array('en_US' => '0.0');
+    public $accept;
 
     /**
      * Query string
@@ -80,7 +80,7 @@ class Restful_Server_Request
      * Etag
      * @var string
      */
-    public $etag = null;
+    public $ifMatch = null;
 
     /**
      * Parse a generic 'accept' header
@@ -114,26 +114,31 @@ class Restful_Server_Request
         return array_keys($accept);
     }
 
+    /**
+     * Analyze the HTTP requeset and prepare the object
+     *
+     * @return void
+     * @throw Exception
+     */
     public function __construct()
     {
         // Method
-        $this->method = $_SERVER['REQUEST_METHOD'];
+        if (in_array($_SERVER['REQUEST_METHOD'], self::$httpMethods))
+            $this->method = $_SERVER['REQUEST_METHOD'];
+        else
+            throw new Exception('The HTTP method \'' . $_SERVER['REQUEST_METHOD'] . '\' is not implemented.', 405);
 
         // Uri
-        $this->uri = $_SERVER['REQUEST_URI'];
+        $this->uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 
         // Accept
-        $this->accept = array_merge($this->accept, $this->_parseAccept($_SERVER['HTTP_ACCEPT']));
-
-        // Accept-Language
-        $this->acceptLanguage = array_merge($this->acceptLanguage, $this->_parseAccept($_SERVER['HTTP_ACCEPT_LANGUAGE']));
+        $this->accept = $this->_parseAccept($_SERVER['HTTP_ACCEPT']);
 
         // Query string
         $this->query = $_GET;
 
         // Data
-        /*
-        TODO Method other than GET are not implemented
+        $this->data = array();
         if (!empty($_SERVER['CONTENT_TYPE']))
         {
             switch($_SERVER['CONTENT_TYPE'])
@@ -142,7 +147,29 @@ class Restful_Server_Request
                     $this->data = $_POST;
                     break;
                 case 'multipart/form-data':
-                    $this->data = $_FILES; // TODO Analyze the array and return more interesting data
+                    // Array of couples mime, content
+                    $this->data = array();
+                    foreach($_FILES as $name => $file)
+                    {
+                        if (is_array($file['error']))
+                        {
+                            $this->data[$name] = array();
+                            foreach($file['error'] as $key => $error)
+                            {
+                                if (UPLOAD_ERR_OK == $error)
+                                    $this->data[$name][$key] = array('mime' => $file['type'][$key], 'content' => file_get_contents($file['tmp_name'][$key]));
+                                else
+                                    throw new Exception('Error ' . $error . ' while uploading the file \'' . $name . '\'. See http://www.php.net/manual/en/features.file-upload.errors.php for the error codes.', 500);
+                            }
+                        }
+                        else
+                        {
+                            if (UPLOAD_ERR_OK == $file['error'])
+                                $this->data[$name] = array('mime' => $file['type'], 'content' => file_get_contents($file['tmp_name']));
+                            else
+                                throw new Exception('Error ' . $file['error'] . ' while uploading the file \'' . $name . '\'. See http://www.php.net/manual/en/features.file-upload.errors.php for the error codes.', 500);
+                        }
+                    }
                     break;
                 case 'application/json':
                     $this->data = json_decode(file_get_contents('php://input'), true);
@@ -150,11 +177,10 @@ class Restful_Server_Request
                 case 'application/xml':
                     $this->data = (array) simplexml_load_file('php://input');
                     break;
-                default
+                default:
                     throw new Exception('Unsupported request Content-Type.', 415);
             }
         }
-        */
 
         // If-Modified-Since
         if (!empty($_SERVER['HTTP_IF_MODIFIED_SINCE']))
@@ -162,6 +188,6 @@ class Restful_Server_Request
 
         // Etag
         if (!empty($_SERVER['HTTP_IF_NONE_MATCH']))
-            $this->etag = $_SERVER['HTTP_IF_NONE_MATCH'];
+            $this->ifMatch = $_SERVER['HTTP_IF_NONE_MATCH'];
     }
 }

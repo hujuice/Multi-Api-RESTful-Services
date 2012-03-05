@@ -47,40 +47,16 @@ class Restful_Server_Router
     protected $_baseUrl;
 
     /**
-     * The selected resource
-     * @var string
-     */
-    protected $_resourceName;
-
-    /**
-     * The selected method
-     * @var string
-     */
-    protected $_method;
-
-    /**
      * The selected params
      * @var array
      */
-    protected $_params;
-
-    /**
-     * The requested Content-Type
-     * @var string
-     */
-    protected $_contentType;
-
-    /**
-     * Reset the selection
-     *
-     * @return void
-     */
-    protected function _reset()
-    {
-        $this->_resourceName = null;
-        $this->_method = null;
-        $this->_params = null;
-    }
+    protected $_params = array(
+                            'path'          => null,
+                            'resource'      => null,
+                            'method'        => null,
+                            'params'        => null,
+                            'contentType'   => null,
+                            );
 
     /**
      * Acquire the base URL
@@ -93,7 +69,6 @@ class Restful_Server_Router
     {
         $this->_resources = $resources;
         $this->_baseUrl = $baseUrl;
-        $this->_reset();
     }
 
     /**
@@ -101,76 +76,66 @@ class Restful_Server_Router
      *
      * @param Restful_Server_Request $request
      * @return boolean
-     * @throw Exception
      */
     public function route(Restful_Server_Request $request)
     {
-        // TODO: find a way to map http methods to the classes via configuration
-        if ($request->method != 'GET')
-            throw new Exception ('Only the GET method is implemented.', 405);
-
-        if ($path = trim(parse_url($request->uri, PHP_URL_PATH), '/'))
+        // Content-Type
+        foreach ($request->accept as $content_type)
         {
-            $parts = explode('/', $path);
-            if (isset($this->_resources[$parts[0]]))
+            if (in_array($content_type, Restful_Server_Response::$contentTypes))
             {
-                $this->_resourceName = $parts[0];
-                if (empty($parts[1]))
-                    return;
+                $this->_params['contentType'] = $content_type;
+                break;
+            }
+        }
 
-                if ($this->_resources[$parts[0]]->hasMethod($parts[1]))
+        // Request
+        if ($path = trim(parse_url(substr($request->uri, strlen($this->_baseUrl)), PHP_URL_PATH), '/'))
+        {
+            $this->_params['path'] = $path;
+
+            $parts = explode('/', $path);
+            $parts[0] = strtolower($parts[0]);
+            if (isset($this->_resources[$parts[0]]) && ($request->method == ($this->_resources[$parts[0]]->httpMethod())))
+            {
+                $this->_params['resource'] = $parts[0];
+
+                if (!empty($parts[1]))
                 {
-                    $this->_method = $parts[1];
-
-                    $data = $request->data ? $request->data : $request->query;
-
-                    if ($this->_resources[$parts[0]]->fitParams($parts[1], $data))
+                    // Check for extension
+                    $method = explode('.', $parts[1], 2);
+                    if (isset($method[1]))
                     {
-                        $this->_params = $data;
-                        return true;
+                        if (isset(Restful_Server_Response::$contentTypes[$method[1]]))
+                        {
+                            $this->_params['contentType'] = Restful_Server_Response::$contentTypes[$method[1]];
+                            $method = $method[0];
+                        }
+                        else
+                            $method = null;
                     }
                     else
+                        $method = $method[0];
+
+                    if ($method && ($this->_params['method'] = $this->_resources[$this->_params['resource']]->checkMethod($method)))
                     {
-                        $this->_reset();
-                        throw new Exception('Parameters are incomplete or invalid.', 400);
+                        // Params
+                        if ('GET' == $request->method)
+                            $data = $request->query;
+                        else
+                            $data = $request->data;
+                        $this->_params['params'] = $this->_resources[$this->_params['resource']]->checkParams($this->_params['method'], $data);
                     }
                 }
-                else
-                {
-                    $this->_reset();
-                    throw new Exception('The ' . $parts[0] . ' resource doesn\'t have a ' . $parts[1] . ' method.', 404);
-                }
             }
-            else
-            {
-                $this->_reset();
-                throw new Exception($parts[0] . ' is an unknown resource.', 404);
-            }
-
-            return true;
         }
-        else
-            $this->_reset(); // No exception here
-    }
 
-    /**
-     * Give the selcted resource name
-     *
-     * @return string
-     */
-    public function getResource()
-    {
-        return $this->_resourceName;
-    }
-
-    /**
-     * Give the selcted method name
-     *
-     * @return string
-     */
-    public function getMethod()
-    {
-        return $this->_method;
+        if ($this->_params['contentType'] &&
+            $this->_params['path'] &&
+            $this->_params['resource'] &&
+            $this->_params['method'] &&
+            is_array($this->_params['params']))
+            return true;
     }
 
     /**
@@ -178,7 +143,7 @@ class Restful_Server_Router
      *
      * @return array
      */
-    public function getParams()
+    public function getRouteParams()
     {
         return $this->_params;
     }
@@ -186,19 +151,27 @@ class Restful_Server_Router
     /**
      * Discover resources, method and params
      *
+     * @param string|null $resource
      * @return array
      */
-    public function discover()
+    public function discover($resource = null)
     {
-        $dics = array();
-        foreach ($this->_resources as $name => $resource)
+        if ($resource && isset($this->_resources[$resource]))
+            $resources = array($resource => $this->_resources[$resource]);
+        else
+            $resources = $this->_resources;
+
+        $disc = array();
+        foreach ($resources as $name => $resource)
         {
-            $disc[$name] = array();
+            $disc[$name] = $resource->desc();
+            $disc[$name]['methods'] = array();
             foreach ($resource->getMethods() as $method)
             {
-                $disc[$name][$method] = array();
+                $disc[$name]['methods'][$method] = $resource->desc($method);
+                $disc[$name]['methods'][$method]['params'] = array();
                 foreach ($resource->getParams($method) as $param => $info)
-                    $disc[$name][$method][$param] = $info;
+                    $disc[$name]['methods'][$method]['params'][$param] = $info;
             }
         }
         return $disc;

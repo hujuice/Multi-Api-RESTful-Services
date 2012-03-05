@@ -1,4 +1,10 @@
 <?php
+/**
+ * Users for interplanetary website
+ *
+ * This is a stupid class where you have
+ * human or computer users, from many planets
+ */
 class Members
 {
     /**
@@ -23,24 +29,48 @@ class Members
     }
 
     /**
-     * Count by planet
+     * Get contacted planet
      *
-     * @param string $planet
-     * @return integer
+     * Only populated planets
+     *
+     * @return array
      */
-    public function getFromPlanet($planet)
+    public function getPlanets()
     {
-        $count = 0;
+        $planets = array();
+        foreach ($this->_members as $member)
+        {
+            if (!in_array($member[1], $planets))
+                $planets[] = $member[1];
+        }
+        return $planets;
+    }
+
+    /**
+     * Get users form a planet
+     *
+     * Try to give an
+     * indication about the
+     *                  people in a planet
+     *
+     * @param string $planet A planet
+     * @return array
+     */
+    public function getFromPlanet($planet = 'Earth')
+    {
+        $people = array();
         foreach ($this->_members as $member)
         {
             if ($member[1] == $planet)
-                $count++;
+                $people[] = $member[0] . ', ' . $member[2];
         }
-        return array($planet => $count);
+        return $people;
     }
 
     /**
      * How many humans?
+     *
+     * Humans are more important!
      *
      * @return integer
      */
