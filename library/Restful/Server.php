@@ -100,7 +100,10 @@ class Restful_Server
         if ($this->_config['debug'])
             return false; // Back to ordinary errors
         else
-            Restful_Server_Response::raw(500, 'Something went wrong in the framework.' . "\n" . $errstr, 'text/plain', 0, null, array()); // Will exit
+        {
+            Restful_Server_Response::raw(500, 'Something went wrong in the framework.' . "\n" . $errstr, 'text/plain', 0, null, array());
+            exit;
+        }
     }
 
     /**
@@ -124,10 +127,12 @@ class Restful_Server
                     "\n" . 'Stack trace:' . "\n" . $exception->getTraceAsString() . "\n" .
                     $this->_digException($exception);
 
-            Restful_Server_Response::raw($code, $body, 'text/plain', 0, null, array()); // Will exit
+            Restful_Server_Response::raw($code, $body, 'text/plain', 0, null, array());
         }
         else
-            Restful_Server_Response::raw($code, 'Something went wrong in the framework.' . "\n" . $exception->getMessage(), 'text/plain', 0, null, array()); // Will exit
+            Restful_Server_Response::raw($code, 'Something went wrong in the framework.' . "\n" . $exception->getMessage(), 'text/plain', 0, null, array());
+
+        exit;
     }
 
     /**

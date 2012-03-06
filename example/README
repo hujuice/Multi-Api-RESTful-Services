@@ -1,10 +1,10 @@
-Have some members data in a file model/members.csv.
+Have some class in 'resources/'.
+Prepare a simple configuration file for each resource.
 
-Have a class to read data in model/Members.php.
-The class takes some configuration at the __constructor.
+Prepare a master configuration file, config.ini.
 
-Prepare one configuration ini file for both service and model, using sections.
+Add some URL rewriting rule to your Apache (see example).
 
-Under your htdocs path, have a 'members.php' service.
-In the members.php file build a new RestJson object giving it the configuration file.
-Run.
+Prepare a very light index.php
+
+That's all!

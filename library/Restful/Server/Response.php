@@ -165,7 +165,7 @@ class Restful_Server_Response
 
         // Status
         if (!isset(self::$statuses[$status]))
-            self::raw(500, 'Internal status code inconcistency.');
+            throw new Exception('Internal status code inconcistency.');
         else
             $headers[] = self::$statuses[$status];
 
@@ -177,7 +177,7 @@ class Restful_Server_Response
         if (in_array($content_type, self::$contentTypes))
             $headers[] = 'Content-Type: ' . $content_type;
         else
-            self::raw(500, 'Internal Content-Type inconcistency.');
+            throw new Exception('Internal Content-Type inconcistency.');
 
         // Cache headers
         if ($max_age && ($max_age > 0))
@@ -205,8 +205,26 @@ class Restful_Server_Response
         foreach ($headers as $header)
             header($header);
         if ($body)
+        {
+            ob_start();
+            if (!empty($_GET['debug']) && (self::$contentTypes['html'] == $content_type)) // Dump debug info
+            {
+                $request_headers = apache_request_headers();
+                $html = '';
+                foreach ($request_headers as $label => $content)
+                    $html .= $label . ': ' . $content . '<br />';
+                $body = preg_replace('/<!-- \{request_headers\} -->/', $html, $body);
+
+                flush();
+                $response_headers = apache_response_headers();
+                $html = '';
+                foreach ($response_headers as $label => $content)
+                    $html .= $label . ': ' . $content . '<br />';
+                $body = preg_replace('/<!-- \{response_headers\} -->/', $html, $body);
+            }
+
             echo $body;
-        exit;
+        }
     }
 
     /**
@@ -255,12 +273,9 @@ class Restful_Server_Response
             $html  = '<div style="background-color: #eee; padding: 0.5em">';
 
             $html .= '<h2>Request</h2>';
-            $html .= '<p style="font-size: 1.5em; font-weight: bold"><tt>' . $info['request']->method . ' ' . $info['request']->uri . htmlspecialchars(http_build_query($info['request']->query)) . '</tt></p>';
-            $request_headers = apache_request_headers();
-            $html .= '<div><tt>';
-            foreach ($request_headers as $label => $content)
-                $html .= $label . ': ' . $content . '<br />';
-            $html .= '</tt></div>';
+            $html .= '<p style="font-size: 1.5em; font-weight: bold"><tt>' . $info['request']->method . ' ' . $info['request']->uri . '?' . htmlspecialchars(http_build_query($info['request']->query)) . '</tt></p>';
+            $html .= '<h2>Request headers</h2>';
+            $html .= '<div><tt><!-- {request_headers} --></tt></div>';
             $html .= '<p>POST data:</p><pre>' . print_r($info['request']->data, true) . '</pre>';
 
             $html .= '<h2>Routing</h2>';
@@ -270,14 +285,7 @@ class Restful_Server_Response
             $html .= '<p style="font-size: 1.5em; font-weight: bold"><tt>' . $info['status'] . '</tt></p>';
 
             $html .= '<h2>Response headers</h2>';
-            /* TODO Find a way to dump them
-            $response_headers = apache_response_headers();
-            $html .= '<div><tt>';
-            foreach ($response_headers as $label => $content)
-                $html .= $label . ': ' . $content . '<br />';
-            $html .= '</tt></div>';
-            */
-            $html .= '<div><tt>Too soon! Use <a href="http://getfirebug.com/">Firebug</a> for <a href="http://www.mozilla.org/en-US/firefox/fx/">Firefox</a> or equivalent.</tt></div>';
+            $html .= '<div><tt><!-- {response_headers} --></tt></div>';
 
             $html .= '</div>';
 
