@@ -172,7 +172,7 @@ class Restful_Server_ResourceAbstract
      * @return void
      * @throw Exception
      */
-    public function __construct($className, $constructorArgs, $classPath = false, $httpMethod = false, $max_age = null)
+    public function __construct($className, $constructorArgs = array(), $classPath = false, $httpMethod = false, $max_age = null)
     {
         if ($httpMethod)
         {

@@ -42,34 +42,47 @@ class Restful_Server_Resource extends Restful_Server_ResourceAbstract
      * @return void
      * @throw Exception
      */
-    public function __construct($name, $config)
+    public function __construct($name, $config = null)
     {
-        // Configuration file
-        $config = parse_ini_file(API_PATH . $config, true);
+        if ($config)
+        {
+            // Configuration file
+            $config = parse_ini_file(API_PATH . $config, true);
 
-        if (empty($config['resource']['class']))
-            $config['resource']['class'] = ucfirst($name);
+            if (empty($config['resource']['class']))
+                $className = ucfirst($name);
+            else
+                $className = $config['resource']['class'];
 
-        if (!isset($config['construct']))
-            $config['construct'] = array();
+            if (!isset($config['construct']))
+                $constructorParams = array();
+            else
+                $constructorParams = (array) $config['construct'];
+
+            if (isset($config['resource']['path']))
+                $classPath = $config['resource']['path'];
+            else
+                $classPath = false;
+
+            if (isset($config['resource']['httpMethod']))
+                $httpMethod = $config['resource']['httpMethod'];
+            else
+                $httpMethod = false;
+
+            if (isset($config['resource']['maxAge']))
+                $max_age = $config['resource']['maxAge'];
+            else
+                $max_age = null;
+        }
         else
-            $config['construct'] = (array) $config['construct'];
-
-        if (isset($config['resource']['path']))
-            $classPath = $config['resource']['path'];
-        else
+        {
+            $className = ucfirst($name);
+            $constructorParams = array();
             $classPath = false;
-
-        if (isset($config['resource']['httpMethod']))
-            $httpMethod = $config['resource']['httpMethod'];
-        else
             $httpMethod = false;
-
-        if (isset($config['resource']['maxAge']))
-            $max_age = $config['resource']['maxAge'];
-        else
             $max_age = null;
+        }
 
-        parent::__construct($config['resource']['class'], $config['construct'], $classPath, $httpMethod, $max_age);
+        parent::__construct($className, $constructorParams, $classPath, $httpMethod, $max_age);
     }
 }
