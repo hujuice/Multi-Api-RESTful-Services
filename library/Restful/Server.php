@@ -80,7 +80,7 @@ class Restful_Server
             return  "\n" .
                     'Previous Exception' . "\n" .
                     "\n" . 'Message: ' . $prev->getMessage() . "\n" .
-                    "\n" . 'Location: ' . $prev->getFile() . ':' . $exception->getLine() . "\n" .
+                    "\n" . 'Location: ' . $prev->getFile() . ':' . $prev->getLine() . "\n" .
                     "\n" . 'Stack trace:' . "\n" . $prev->getTraceAsString() . "\n" .
                     "\n" . $this->_digException($prev);
         }

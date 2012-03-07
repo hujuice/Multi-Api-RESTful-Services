@@ -139,7 +139,9 @@ class Restful_Server_ResourceAbstract
                 // TODO More complex type check
                 $params[$name] = $inputParams[$name];
             }
-            else if (!$value['is optional'])
+            else if ($value['is optional'])
+                $params[$name] = $value['defaults to'];
+            else
                 return;
         }
 
@@ -188,8 +190,8 @@ class Restful_Server_ResourceAbstract
         if ($classPath)
         {
             $classPath = DIRECTORY_SEPARATOR . trim($classPath, DIRECTORY_SEPARATOR);
-            require_once(API_PATH . $classPath . DIRECTORY_SEPARATOR . $className . '.php');
-        }
+            require_once(API_PATH . $classPath . DIRECTORY_SEPARATOR . $className . '.php');			
+        } 
 
         $this->_reflection = new ReflectionClass($className);
 
