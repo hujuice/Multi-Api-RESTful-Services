@@ -143,7 +143,7 @@ class Restful_Server
      */
     public function autoloader($class)
     {
-        require_once(str_replace('_', DIRECTORY_SEPARATOR, (string) $class) . '.php');
+        require_once(realpath(__DIR__ . '/..') . DIRECTORY_SEPARATOR . str_replace('_', DIRECTORY_SEPARATOR, (string) $class) . '.php');
     }
 
     /**
@@ -172,7 +172,10 @@ class Restful_Server
 
         $this->_resources = array();
         foreach($config['resources'] as $resourceName => $resourceConfig)
-            $this->_resources[strtolower($resourceName)] = new Restful_Server_Resource($resourceConfig);
+        {
+            $resourceName = strtolower($resourceName);
+            $this->_resources[$resourceName] = new Restful_Server_Resource($resourceName, $resourceConfig);
+        }
 
         // Add the Discover resource
         $this->_resources['discover'] = new Restful_Server_ResourceInternal('Restful_Server_Discover', array('resources' => $this->_resources, 'baseUrl' => $this->_config['baseUrl']));

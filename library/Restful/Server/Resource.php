@@ -37,17 +37,18 @@ class Restful_Server_Resource extends Restful_Server_ResourceAbstract
     /**
      * Create the resource
      *
+     * @params string $name
      * @param array $config
      * @return void
      * @throw Exception
      */
-    public function __construct($config)
+    public function __construct($name, $config)
     {
         // Configuration file
         $config = parse_ini_file(API_PATH . $config, true);
 
-        if (!isset($config['resource']['class']))
-            throw new Exception('Undefined class name.');
+        if (empty($config['resource']['class']))
+            $config['resource']['class'] = ucfirst($name);
 
         if (!isset($config['construct']))
             $config['construct'] = array();
