@@ -38,10 +38,7 @@ class Restful_Server_ResourceAbstract
      * Resource configuration
      * @var array
      */
-    protected $_config = array(
-                            'httpMethod'    => 'GET',
-                            'max-age'       => 3600,
-                            );
+    protected $_config;
 
     /**
      * The class reflection object
@@ -167,14 +164,13 @@ class Restful_Server_ResourceAbstract
      * Create the resource
      *
      * @param array $className
-     * @param array $constructorArgs
-     * @param boolean $classPath Autoloaded if empty
+     * @param array $construct
      * @param string $httpMethod
      * @param integer $max_age
      * @return void
      * @throw Exception
      */
-    public function __construct($className, $constructorArgs = array(), $classPath = false, $httpMethod = false, $max_age = null)
+    public function __construct($className, $construct = array(), $httpMethod = 'GET', $max_age = 600)
     {
         if ($httpMethod)
         {
@@ -184,14 +180,12 @@ class Restful_Server_ResourceAbstract
                 throw new Exception('The resource HTTP method is not allowed.');
         }
 
-        if (($max_age !== NULL) && ($max_age >= 0))
+        if ($max_age >= 0)
             $this->_config['maxAge'] = (integer) $max_age;
+        else
+            throw new Exception('\'max-age\' MUST be a non-negative integer.');
 
-        if ($classPath)
-        {
-            $classPath = DIRECTORY_SEPARATOR . trim($classPath, DIRECTORY_SEPARATOR);
-            require_once(API_PATH . $classPath . DIRECTORY_SEPARATOR . $className . '.php');			
-        } 
+        $this->_config['construct'] = (array) $construct;
 
         $this->_reflection = new ReflectionClass($className);
 
@@ -199,7 +193,7 @@ class Restful_Server_ResourceAbstract
         try
         {
             $params = $this->_methodParams('__construct');
-            if (!is_array($this->_config['construct'] = $this->_mapParams($params, $constructorArgs)))
+            if (!is_array($this->_config['construct'] = $this->_mapParams($params, $this->_config['construct'])))
                 throw new Exception('Invalid constructor arguments.');
         }
         catch (Exception $e)
@@ -231,6 +225,16 @@ class Restful_Server_ResourceAbstract
     public function httpMethod()
     {
         return $this->_config['httpMethod'];
+    }
+
+    /**
+     * Return the max-age
+     *
+     * @return integer
+     */
+    public function maxAge()
+    {
+        return $this->_config['maxAge'];
     }
 
     /**
@@ -304,16 +308,6 @@ class Restful_Server_ResourceAbstract
         {
             throw new Exception('Unable to find the \'' . $method . '\' method.', 500, $e);
         }
-    }
-
-    /**
-     * Return the max-age
-     *
-     * @return integer
-     */
-    public function maxAge()
-    {
-        return $this->_config['max-age'];
     }
 
     /**

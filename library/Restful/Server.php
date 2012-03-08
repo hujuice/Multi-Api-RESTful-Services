@@ -167,14 +167,18 @@ class Restful_Server
         // Configuration file
         $config = parse_ini_file($config, true);
 
-        // API behaviour
+        // Server behaviour
         $this->_config = array_merge($this->_config, array_filter($config['server']));
 
         $this->_resources = array();
-        foreach($config['resources'] as $resourceName => $resourceConfig)
+        if ($config['resources'])
         {
-            $resourceName = strtolower($resourceName);
-            $this->_resources[$resourceName] = new Restful_Server_Resource($resourceName, $resourceConfig);
+            $config['resources'] = new Restful_Config($config['resources']);
+            foreach($config['resources'] as $resourceName => $resourceConfig)
+            {
+                $resourceName = strtolower($resourceName);
+                $this->_resources[$resourceName] = new Restful_Server_Resource($resourceName, $resourceConfig);
+            }
         }
 
         // Add the Discover resource

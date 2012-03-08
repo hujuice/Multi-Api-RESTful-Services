@@ -136,10 +136,15 @@ class Restful_Server_Response
             foreach ($array as $key => $value)
             {
                 $html.= '<dt style="float: left; font-weight: bold">' . htmlspecialchars($key) . '</dt>';
-                if (is_scalar($value))
-                    $html .= '<dd style="padding-left: 4em">' . htmlspecialchars($value) . '</dd>';
+                if ($value)
+                {
+                    if (is_scalar($value))
+                        $html .= '<dd style="padding-left: 4em">' . htmlspecialchars($value) . '</dd>';
+                    else
+                        $html .= '<dd style="clear: left">' . self::array2html((array) $value) . '</dd>';
+                }
                 else
-                    $html .= '<dd style="clear: left">' . self::array2html((array) $value) . '</dd>';
+                    $value = '<dd>&nbsp;</dd>';
             }
             $html .= '</dl>';
             return $html;

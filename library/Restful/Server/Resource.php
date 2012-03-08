@@ -37,8 +37,8 @@ class Restful_Server_Resource extends Restful_Server_ResourceAbstract
     /**
      * Create the resource
      *
-     * @params string $name
-     * @param array $config
+     * @param string $name
+     * @param Restful_Config|null $config
      * @return void
      * @throw Exception
      */
@@ -46,43 +46,31 @@ class Restful_Server_Resource extends Restful_Server_ResourceAbstract
     {
         if ($config)
         {
-            // Configuration file
-            $config = parse_ini_file(API_PATH . $config, true);
-
-            if (empty($config['resource']['class']))
+            if (empty($config->class))
                 $className = ucfirst($name);
             else
-                $className = $config['resource']['class'];
+                $className = $config->class;
 
-            if (!isset($config['construct']))
-                $constructorParams = array();
-            else
-                $constructorParams = (array) $config['construct'];
+            $path = $config->path ? $config->path . DIRECTORY_SEPARATOR : '';
 
-            if (isset($config['resource']['path']))
-                $classPath = $config['resource']['path'];
+            if ($config->construct)
+                $construct = $config->construct->toArray();
             else
-                $classPath = false;
+                $construct = array();
 
-            if (isset($config['resource']['httpMethod']))
-                $httpMethod = $config['resource']['httpMethod'];
-            else
-                $httpMethod = false;
-
-            if (isset($config['resource']['maxAge']))
-                $max_age = $config['resource']['maxAge'];
-            else
-                $max_age = null;
+            $httpMethod = $config->httpMethod;
+            $max_age = $config->maxAge;
         }
         else
         {
             $className = ucfirst($name);
-            $constructorParams = array();
-            $classPath = false;
+            $construct = array();
             $httpMethod = false;
             $max_age = null;
+            $path = '';
         }
 
-        parent::__construct($className, $constructorParams, $classPath, $httpMethod, $max_age);
+        require_once($path . $className . '.php');
+        parent::__construct($className, $construct, $httpMethod, $max_age);
     }
 }
