@@ -70,9 +70,9 @@ class Restful_Server_ResourceAbstract
                 else
                     $fields['desc'] = $matches[1];
             }
-            else if (preg_match('/^\s*\*\s*@param\s(\w+)\s\$(\w+)\s*(.*)$/', $row, $matches))
+            else if (preg_match('/^\s*\*\s*@param\s([\w|]+)\s\$(\w+)\s*(.*)$/', $row, $matches))
                 $fields['params'][$matches[2]] = array('type' => $matches[1], 'desc' => $matches[3]);
-            else if (preg_match('/^\s*\*\s*@return\s(\w+)\s*(.*)$/', $row, $matches))
+            else if (preg_match('/^\s*\*\s*@return\s([\w|]+)\s*(.*)$/', $row, $matches))
                 $fields['return'] = array('type' => $matches[1], 'desc' => $matches[2]);
         }
 
@@ -102,7 +102,6 @@ class Restful_Server_ResourceAbstract
             $name = strtolower($param->getName());
             $params[$name] = array(
                                     'position'      => $param->getPosition(),
-                                    'has default'   => $param->isDefaultValueAvailable(),
                                     'is optional'   => $param->isOptional(),
                                     );
             if ($params[$name]['is optional'])
@@ -179,6 +178,8 @@ class Restful_Server_ResourceAbstract
             else
                 throw new Exception('The resource HTTP method is not allowed.');
         }
+        else
+            $this->_config['httpMethod'] = 'GET';
 
         if ($max_age >= 0)
             $this->_config['maxAge'] = (integer) $max_age;
@@ -211,10 +212,15 @@ class Restful_Server_ResourceAbstract
     public function desc($method = null)
     {
         if ($method)
+        {
             $comment = $this->_docComment($this->_reflection->getMethod($this->checkMethod($method))->getDocComment());
+            return array('desc' => $comment['desc'], 'purpose' => $comment['purpose'], 'return' => $comment['return']);
+        }
         else
+        {
             $comment = $this->_docComment($this->_reflection->getDocComment());
-        return array('desc' => $comment['desc'], 'purpose' => $comment['purpose']);
+            return array('desc' => $comment['desc'], 'purpose' => $comment['purpose']);
+        }
     }
 
     /**
@@ -329,7 +335,6 @@ class Restful_Server_ResourceAbstract
         try
         {
             $model = $this->_reflection->newInstanceArgs($this->_config['construct']);
-            //return call_user_func_array(array($model, $method), $params);
             return $this->_reflection->getMethod($method)->invokeArgs($model, $params);
         }
         catch (Exception $e)

@@ -102,7 +102,7 @@ class Restful_Server_Response
 <head>
 <title>Restful Services Discovery</title>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<meta name="description" content="Start page for the restful services." />
+<meta name="description" content="Multi-API Restful Services - Server" />
 </head>
 <body style="margin: 0">
 <h1 style="margin: 0; padding: 1em; background-color: #437"><a href="/" style="color: #fff; text-decoration: none">Restful Services Discovery</a></h1>
@@ -144,7 +144,7 @@ class Restful_Server_Response
                         $html .= '<dd style="clear: left">' . self::array2html((array) $value) . '</dd>';
                 }
                 else
-                    $value = '<dd>&nbsp;</dd>';
+                    $html .= '<dd>&nbsp;</dd>';
             }
             $html .= '</dl>';
             return $html;

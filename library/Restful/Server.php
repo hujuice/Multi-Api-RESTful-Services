@@ -77,8 +77,7 @@ class Restful_Server
     {
         if ($prev = $e->getPrevious())
         {
-            return  "\n" .
-                    'Previous Exception' . "\n" .
+            return  "\n" . 'Previous Exception' . "\n" .
                     "\n" . 'Message: ' . $prev->getMessage() . "\n" .
                     "\n" . 'Location: ' . $prev->getFile() . ':' . $prev->getLine() . "\n" .
                     "\n" . 'Stack trace:' . "\n" . $prev->getTraceAsString() . "\n" .
