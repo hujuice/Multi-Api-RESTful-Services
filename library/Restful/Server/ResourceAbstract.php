@@ -47,7 +47,7 @@ class Restful_Server_ResourceAbstract
     protected $_reflection;
 
     /**
-     * Read a DocComment
+     * Parse a DocComment
      *
      * @param string $comment
      * @return array
@@ -58,8 +58,6 @@ class Restful_Server_ResourceAbstract
         $fields = array(
                         'desc'      => '',
                         'purpose'   => '',
-                        'params'    => array(),
-                        'return'    => array(),
                         );
         foreach (explode("\n", $comment) as $row)
         {
@@ -71,9 +69,9 @@ class Restful_Server_ResourceAbstract
                     $fields['desc'] = $matches[1];
             }
             else if (preg_match('/^\s*\*\s*@param\s([\w|]+)\s\$(\w+)\s*(.*)$/', $row, $matches))
-                $fields['params'][$matches[2]] = array('type' => $matches[1], 'desc' => $matches[3]);
+                $fields['params'][$matches[2]] = array('desc' => $matches[3], 'type' => $matches[1]);
             else if (preg_match('/^\s*\*\s*@return\s([\w|]+)\s*(.*)$/', $row, $matches))
-                $fields['return'] = array('type' => $matches[1], 'desc' => $matches[2]);
+                $fields['return'] = array('desc' => $matches[2], 'type' => $matches[1]);
         }
 
         return $fields;
@@ -93,26 +91,32 @@ class Restful_Server_ResourceAbstract
         $types = array();
 
         $comment = $this->_docComment($method->getDocComment());
-        $comment = $this->_key2lower($comment['params']);
+        if (isset($comment['params']))
+            $comment['params'] = $this->_key2lower($comment['params']);
+        else
+            $comment['params'] = array();
 
         // Build the params list
         $params = array();
         foreach ($method->getParameters() as $param)
         {
             $name = strtolower($param->getName());
-            $params[$name] = array(
-                                    'position'      => $param->getPosition(),
-                                    'is optional'   => $param->isOptional(),
-                                    );
+            $params[$name] = array();
+
+            if (isset($comment['params'][$name]))
+            {
+                $params[$name]['desc'] = $comment['params'][$name]['desc'];
+                $params[$name]['type'] = $comment['params'][$name]['type'];
+            }
+
+            $params[$name]['is optional'] = $param->isOptional();
+
             if ($params[$name]['is optional'])
                 $params[$name]['defaults to'] = $param->getDefaultValue();
 
-            if (isset($comment[$name]))
-            {
-                $params[$name]['type'] = $comment[$name]['type'];
-                $params[$name]['desc'] = $comment[$name]['desc'];
-            }
+            $params[$name]['position'] = $param->getPosition();
         }
+
         return $params;
     }
 
@@ -209,7 +213,7 @@ class Restful_Server_ResourceAbstract
      * @param string|null $method
      * @return array
      */
-    public function desc($method = null)
+    public function desc($method = '')
     {
         if ($method)
         {
@@ -256,7 +260,7 @@ class Restful_Server_ResourceAbstract
             // Method names to lowercase
             $name = $method->getName();
             if (strpos($name, '__') !== 0) // Exclude the '__' methods
-                $methods[] = strtolower($method->getName());
+                $methods[] = strtolower($name);
         }
         return $methods;
     }

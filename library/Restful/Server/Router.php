@@ -86,6 +86,11 @@ class Restful_Server_Router
                 $this->_params['contentType'] = $content_type;
                 break;
             }
+            else if ('*/*' == $content_type)
+            {
+                $this->_params['contentType'] = Restful_Server_Response::$contentTypes[0];
+                break;
+            }
             else if ('*/' == substr($content_type, 0, 2))
             {
                 $subtype = substr($content_type, 1); // Starts with '/' to be comparable with strstr
@@ -178,7 +183,7 @@ class Restful_Server_Router
      * @param string $elem
      * @return array
      */
-    public function getRouteParams($elem = null)
+    public function getRouteParams($elem = '')
     {
         if ($elem)
         {
@@ -187,34 +192,5 @@ class Restful_Server_Router
         }
         else
             return $this->_params;
-    }
-
-    /**
-     * Discover resources, method and params
-     *
-     * @param string|null $resource
-     * @return array
-     */
-    public function discover($resource = null)
-    {
-        if ($resource && isset($this->_resources[$resource]))
-            $resources = array($resource => $this->_resources[$resource]);
-        else
-            $resources = $this->_resources;
-
-        $disc = array();
-        foreach ($resources as $name => $resource)
-        {
-            $disc[$name] = $resource->desc();
-            $disc[$name]['methods'] = array();
-            foreach ($resource->getMethods() as $method)
-            {
-                $disc[$name]['methods'][$method] = $resource->desc($method);
-                $disc[$name]['methods'][$method]['params'] = array();
-                foreach ($resource->getParams($method) as $param => $info)
-                    $disc[$name]['methods'][$method]['params'][$param] = $info;
-            }
-        }
-        return $disc;
     }
 }

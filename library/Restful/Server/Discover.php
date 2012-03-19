@@ -1,4 +1,37 @@
 <?php
+/**
+ * RESTful API PHP Framework
+ *
+ * LICENSE
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * @category   Restful
+ * @package    Restful_Server
+ * @copyright  Copyright (c) 2012 Sergio Vaccaro <hujuice@inservibile.org>
+ * @license    http://www.gnu.org/licenses/gpl-3.0.txt     GPLv3
+ * @version
+ */
+
+/**
+ * Restful Server Discovery Tool
+ *
+ * @category   Restful
+ * @package    Restful_Server
+ * @copyright  Copyright (c) 2012 Sergio Vaccaro <hujuice@inservibile.org>
+ * @license    http://www.gnu.org/licenses/gpl-3.0.txt     GPLv3
+ */
 class Restful_Server_Discover
 {
     /**
@@ -57,8 +90,12 @@ class Restful_Server_Discover
         {
             foreach ($this->_resources[$resource]->getMethods() as $method)
             {
-                $methods[$method] = $this->_resources[$resource]->desc($method);
+                //$methods[$method] = $this->_resources[$resource]->desc($method);
+                $desc = $this->_resources[$resource]->desc($method);
+                $methods[$method]['desc'] = $desc['desc'];
+                $methods[$method]['purpose'] = $desc['purpose'];
                 $methods[$method]['params'] = $this->params($resource, $method);
+                $methods[$method]['return'] = $desc['return'];
                 $methods[$method]['discover'] = 'http://' . $_SERVER['SERVER_NAME'] . $this->_baseUrl . 'discover/params?resource=' . $resource . '&method=' . $method;
             }
 
