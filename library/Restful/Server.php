@@ -118,6 +118,8 @@ class Restful_Server
         else
             $code = 500;
 
+$code = 500;
+
         if ($this->_config['debug'])
         {
             $body = 'Internal Exception' . "\n" .
@@ -126,7 +128,7 @@ class Restful_Server
                     "\n" . 'Stack trace:' . "\n" . $exception->getTraceAsString() . "\n" .
                     $this->_digException($exception);
 
-            Restful_Server_Response::raw($code, $body, 'text/plain', 0, null, array());
+            Restful_Server_Response::raw($code, $body, 'text/plain', 0, null, '', array());
         }
         else
             Restful_Server_Response::raw($code, 'Something went wrong in the framework.' . "\n" . $exception->getMessage(), 'text/plain', 0, null, array());
@@ -142,7 +144,7 @@ class Restful_Server
      */
     public function autoloader($class)
     {
-        require_once(realpath(__DIR__ . '/..') . DIRECTORY_SEPARATOR . str_replace('_', DIRECTORY_SEPARATOR, (string) $class) . '.php');
+        @include_once(realpath(__DIR__ . '/..') . DIRECTORY_SEPARATOR . str_replace('_', DIRECTORY_SEPARATOR, (string) $class) . '.php');
     }
 
     /**

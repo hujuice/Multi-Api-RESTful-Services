@@ -128,27 +128,56 @@ class Restful_Server_Response
      */
     protected $_template;
 
-    public static function array2html($array)
+    /**
+     * Format data in a simple HTML layout
+     *
+     * @param mixed $data
+     * @return string
+     */
+    public static function data2html($data)
     {
-        if ($array)
+        $html = '<div class="Restful_Data">'; // Avoid to write in body directly
+        switch(gettype($data))
         {
-            $html = '<dl style="border: 1px dotted #999; margin: 0.5em">';
-            foreach ($array as $key => $value)
-            {
-                $html.= '<dt style="float: left; font-weight: bold">' . htmlspecialchars($key) . '</dt>';
-                if ($value)
+            case 'unknown type':
+            case 'resource':
+                throw new Exception('Unsupported data type');
+            case 'NULL':
+                $html .= 'NULL';
+                break;
+            case 'boolean':
+                $html .= $data ? 'true' : 'false';
+                break;
+            case 'integer':
+            case 'double':
+            case 'string':
+                $html .= $data;
+                break;
+            case 'object':
+                $data = (array) $data;
+                break;
+            case 'array':
+                $html .= '<dl style="border: 1px dotted #999; margin: 0.5em">';
+                foreach ($data as $key => $value)
                 {
-                    if (is_scalar($value))
-                        $html .= '<dd style="padding-left: 4em">' . htmlspecialchars($value) . '</dd>';
+                    $html.= '<dt style="float: left; font-weight: bold">' . htmlspecialchars($key) . '</dt>';
+                    if ($value)
+                    {
+                        if (is_scalar($value))
+                            $html .= '<dd style="padding-left: 4em">' . htmlspecialchars($value) . '</dd>';
+                        else
+                            $html .= '<dd style="clear: left">' . self::data2html((array) $value) . '</dd>';
+                    }
                     else
-                        $html .= '<dd style="clear: left">' . self::array2html((array) $value) . '</dd>';
+                        $html .= '<dd>&nbsp;</dd>';
                 }
-                else
-                    $html .= '<dd>&nbsp;</dd>';
-            }
-            $html .= '</dl>';
-            return $html;
+                $html .= '</dl>';
+                break;
+            default:
+                throw new Exception('Unknown data type');
         }
+        $html .= '</div>';
+        return $html;
     }
 
     /**
@@ -257,7 +286,7 @@ class Restful_Server_Response
                 $body = wddx_serialize_value($info['data']);
                 break;
             case 'text/html':
-                $body = preg_replace('/<!-- \{dinamic\} -->/', self::array2html($info['data']), str_replace("\n", '', self::$htmlTemplate));
+                $body = preg_replace('/<!-- \{dinamic\} -->/', self::data2html($info['data']), str_replace("\n", '', self::$htmlTemplate));
                 break;
             case 'text/plain':
                 $body = print_r($info['data'], true);
