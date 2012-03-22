@@ -17,22 +17,23 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * @category   Restful
- * @package    Restful_Server
- * @copyright  Copyright (c) 2012 Sergio Vaccaro <hujuice@inservibile.org>
- * @license    http://www.gnu.org/licenses/gpl-3.0.txt     GPLv3
+ * @package     Restful\Server
+ * @subpackage  Server
+ * @copyright   Copyright (c) 2012 Sergio Vaccaro <hujuice@inservibile.org>
+ * @license     http://www.gnu.org/licenses/gpl-3.0.txt     GPLv3
  * @version
  */
+namespace Restful\Server;
 
 /**
  * Restful Server Router
  *
- * @category   Restful
- * @package    Restful_Server
- * @copyright  Copyright (c) 2012 Sergio Vaccaro <hujuice@inservibile.org>
- * @license    http://www.gnu.org/licenses/gpl-3.0.txt     GPLv3
+ * @package     Restful\Server
+ * @subpackage  Server
+ * @copyright   Copyright (c) 2012 Sergio Vaccaro <hujuice@inservibile.org>
+ * @license     http://www.gnu.org/licenses/gpl-3.0.txt     GPLv3
  */
-class Restful_Server_Router
+class Router
 {
     /**
      * The resources array
@@ -64,7 +65,7 @@ class Restful_Server_Router
      * @param string $baseUrl
      * @return void
      */
-    public function __construct($resources, $baseUrl = '')
+    public function __construct(array $resources, $baseUrl = '')
     {
         $this->_resources = $resources;
         $this->_baseUrl = $baseUrl;
@@ -73,28 +74,28 @@ class Restful_Server_Router
     /**
      * Find resource, method and params for the given request
      *
-     * @param Restful_Server_Request $request
+     * @param Restful\Server\Request $request
      * @return boolean
      */
-    public function route(Restful_Server_Request $request)
+    public function route(Request $request)
     {
         // Content-Type
         foreach ($request->accept as $content_type)
         {
-            if (in_array($content_type, Restful_Server_Response::$contentTypes))
+            if (in_array($content_type, Response::$contentTypes))
             {
                 $this->_params['contentType'] = $content_type;
                 break;
             }
             else if ('*/*' == $content_type)
             {
-                $this->_params['contentType'] = Restful_Server_Response::$contentTypes[0];
+                $this->_params['contentType'] = Response::$contentTypes[0];
                 break;
             }
             else if ('*/' == substr($content_type, 0, 2))
             {
                 $subtype = substr($content_type, 1); // Starts with '/' to be comparable with strstr
-                foreach (Restful_Server_Response::$contentTypes as $allowed)
+                foreach (Response::$contentTypes as $allowed)
                 {
                     if (strstr($allowed, '/') == $subtype)
                     {
@@ -106,7 +107,7 @@ class Restful_Server_Router
             else if ('/*' == substr($content_type, -2))
             {
                 $type = substr($content_type, 0, -2); // Now strstr will exclude the needle (see docs)
-                foreach (Restful_Server_Response::$contentTypes as $allowed)
+                foreach (Response::$contentTypes as $allowed)
                 {
                     if (strstr($allowed, '/', true) == $subtype)
                     {
@@ -140,9 +141,9 @@ class Restful_Server_Router
                     $method = explode('.', $parts[1], 2);
                     if (isset($method[1]))
                     {
-                        if (isset(Restful_Server_Response::$contentTypes[$method[1]]))
+                        if (isset(Response::$contentTypes[$method[1]]))
                         {
-                            $this->_params['contentType'] = Restful_Server_Response::$contentTypes[$method[1]];
+                            $this->_params['contentType'] = Response::$contentTypes[$method[1]];
                             $method = $method[0];
                         }
                         else

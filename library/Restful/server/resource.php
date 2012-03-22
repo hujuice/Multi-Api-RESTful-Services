@@ -17,22 +17,23 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * @category   Restful
- * @package    Restful_Server
- * @copyright  Copyright (c) 2012 Sergio Vaccaro <hujuice@inservibile.org>
- * @license    http://www.gnu.org/licenses/gpl-3.0.txt     GPLv3
+ * @package     Restful\Server
+ * @subpackage  Server
+ * @copyright   Copyright (c) 2012 Sergio Vaccaro <hujuice@inservibile.org>
+ * @license     http://www.gnu.org/licenses/gpl-3.0.txt     GPLv3
  * @version
  */
+namespace Restful\Server;
 
 /**
- * Restful Server Resource Abstract
+ * Restful Server Resource
  *
- * @category   Restful
- * @package    Restful_Server
- * @copyright  Copyright (c) 2012 Sergio Vaccaro <hujuice@inservibile.org>
- * @license    http://www.gnu.org/licenses/gpl-3.0.txt     GPLv3
+ * @package     Restful\Server
+ * @subpackage  Server
+ * @copyright   Copyright (c) 2012 Sergio Vaccaro <hujuice@inservibile.org>
+ * @license     http://www.gnu.org/licenses/gpl-3.0.txt     GPLv3
  */
-class Restful_Server_ResourceAbstract
+class Resource
 {
     /**
      * Resource configuration
@@ -64,7 +65,7 @@ class Restful_Server_ResourceAbstract
             if (preg_match('/^\s*\*\s*(\w.*)$/', $row, $matches))
             {
                 if ($fields['desc'])
-                    $fields['purpose'] .= $matches[1] . ' ';
+                    $fields['purpose'] .= $matches[1] . PHP_EOL;
                 else
                     $fields['desc'] = $matches[1];
             }
@@ -127,7 +128,7 @@ class Restful_Server_ResourceAbstract
      * @param arrat $inputParams
      * @return array
      */
-    protected function _mapParams($methodParams, $inputParams)
+    protected function _mapParams(array $methodParams, array $inputParams)
     {
         $inputParams = $this->_key2lower($inputParams);
         $params = array();
@@ -154,7 +155,7 @@ class Restful_Server_ResourceAbstract
      * @param array $array
      * @return array
      */
-    protected function _key2lower($array)
+    protected function _key2lower(array $array)
     {
         $lower = array();
         $array = (array) $array;
@@ -166,21 +167,21 @@ class Restful_Server_ResourceAbstract
     /**
      * Create the resource
      *
-     * @param array $className
+     * @param string $className
      * @param array $construct
      * @param string $httpMethod
      * @param integer $max_age
      * @return void
      * @throw Exception
      */
-    public function __construct($className, $construct = array(), $httpMethod = 'GET', $max_age = 600)
+    public function __construct($className, array $construct = array(), $httpMethod = 'GET', $max_age = 600)
     {
         if ($httpMethod)
         {
-            if (in_array($httpMethod, Restful_Server_Request::$httpMethods))
+            if (in_array($httpMethod, Request::$httpMethods))
                 $this->_config['httpMethod'] = $httpMethod;
             else
-                throw new Exception('The resource HTTP method is not allowed.');
+                throw new \Exception('The resource HTTP method is not allowed.');
         }
         else
             $this->_config['httpMethod'] = 'GET';
@@ -188,29 +189,32 @@ class Restful_Server_ResourceAbstract
         if ($max_age >= 0)
             $this->_config['maxAge'] = (integer) $max_age;
         else
-            throw new Exception('\'max-age\' MUST be a non-negative integer.');
+            throw new \Exception('\'max-age\' MUST be a non-negative integer.');
 
         $this->_config['construct'] = (array) $construct;
 
-        $this->_reflection = new ReflectionClass($className);
+        $this->_reflection = new \ReflectionClass('\\' . $className);
 
         // Constructor
-        try
+        if ($this->_reflection->hasMethod('__construct'))
         {
-            $params = $this->_methodParams('__construct');
-            if (!is_array($this->_config['construct'] = $this->_mapParams($params, $this->_config['construct'])))
-                throw new Exception('Invalid constructor arguments.');
-        }
-        catch (Exception $e)
-        {
-            throw $e;
+            try
+            {
+                $params = $this->_methodParams('__construct');
+                if (!is_array($this->_config['construct'] = $this->_mapParams($params, $this->_config['construct'])))
+                    throw new \Exception('Invalid constructor arguments.');
+            }
+            catch (Exception $e)
+            {
+                throw $e;
+            }
         }
     }
 
     /**
      * Give the resource or method description
      *
-     * @param string|null $method
+     * @param string $method
      * @return array
      */
     public function desc($method = '')
@@ -255,7 +259,7 @@ class Restful_Server_ResourceAbstract
     public function getMethods()
     {
         $methods = array();
-        foreach ($this->_reflection->getMethods(ReflectionMethod::IS_PUBLIC) as $method)
+        foreach ($this->_reflection->getMethods(\ReflectionMethod::IS_PUBLIC) as $method)
         {
             // Method names to lowercase
             $name = $method->getName();
@@ -290,7 +294,7 @@ class Restful_Server_ResourceAbstract
         if ($methodName = $this->checkMethod($method))
             return $this->_methodParams($methodName);
         else
-            throw new Exception('Unknown method \'' . $method . '\'.');
+            throw new \Exception('Unknown method \'' . $method . '\'.');
     }
 
     /**
@@ -303,7 +307,7 @@ class Restful_Server_ResourceAbstract
      * @return array
      * @throw Exception
      */
-    public function checkParams($method, $params)
+    public function checkParams($method, array $params)
     {
         try
         {
@@ -316,7 +320,7 @@ class Restful_Server_ResourceAbstract
         }
         catch (Exception $e)
         {
-            throw new Exception('Unable to find the \'' . $method . '\' method.', 500, $e);
+            throw new \Exception('Unable to find the \'' . $method . '\' method.', 500, $e);
         }
     }
 
@@ -328,22 +332,22 @@ class Restful_Server_ResourceAbstract
      * @return mixed
      * @throw Exception
      */
-    public function exec($method, $params)
+    public function exec($method, array $params)
     {
         if (!$method = $this->checkMethod($method))
-            throw new Exception('Unknown method \'' . $method . '\'.');
+            throw new \Exception('Unknown method \'' . $method . '\'.');
 
         if (!is_array($params = $this->checkParams($method, $params)))
-            throw new Exception('Incomplete or bad parameter structure.');
+            throw new \Exception('Incomplete or bad parameter structure.');
 
         try
         {
             $model = $this->_reflection->newInstanceArgs($this->_config['construct']);
             return $this->_reflection->getMethod($method)->invokeArgs($model, $params);
         }
-        catch (Exception $e)
+        catch (\Exception $e)
         {
-            throw new Exception('Resource error.', 500, $e);
+            throw new \Exception('Resource error.', 500, $e);
         }
     }
 }

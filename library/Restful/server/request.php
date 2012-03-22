@@ -17,22 +17,23 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * @category   Restful
- * @package    Restful_Server
- * @copyright  Copyright (c) 2012 Sergio Vaccaro <hujuice@inservibile.org>
- * @license    http://www.gnu.org/licenses/gpl-3.0.txt     GPLv3
+ * @package     Restful\Server
+ * @subpackage  Server
+ * @copyright   Copyright (c) 2012 Sergio Vaccaro <hujuice@inservibile.org>
+ * @license     http://www.gnu.org/licenses/gpl-3.0.txt     GPLv3
  * @version
  */
+namespace Restful\Server;
 
 /**
  * Restful Server Request
  *
- * @category   Restful
- * @package    Restful_Server
- * @copyright  Copyright (c) 2012 Sergio Vaccaro <hujuice@inservibile.org>
- * @license    http://www.gnu.org/licenses/gpl-3.0.txt     GPLv3
+ * @package     Restful\Server
+ * @subpackage  Server
+ * @copyright   Copyright (c) 2012 Sergio Vaccaro <hujuice@inservibile.org>
+ * @license     http://www.gnu.org/licenses/gpl-3.0.txt     GPLv3
  */
-class Restful_Server_Request
+class Request
 {
     /**
      * Supported HTTP methods
@@ -126,7 +127,7 @@ class Restful_Server_Request
         if (in_array($_SERVER['REQUEST_METHOD'], self::$httpMethods))
             $this->method = $_SERVER['REQUEST_METHOD'];
         else
-            throw new Exception('The HTTP method \'' . $_SERVER['REQUEST_METHOD'] . '\' is not implemented.', 405);
+            throw new \Exception('The HTTP method \'' . $_SERVER['REQUEST_METHOD'] . '\' is not implemented.', 405);
 
         // Uri
         $this->uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
@@ -159,7 +160,7 @@ class Restful_Server_Request
                                 if (UPLOAD_ERR_OK == $error)
                                     $this->data[$name][$key] = array('mime' => $file['type'][$key], 'content' => file_get_contents($file['tmp_name'][$key]));
                                 else
-                                    throw new Exception('Error ' . $error . ' while uploading the file \'' . $name . '\'. See http://www.php.net/manual/en/features.file-upload.errors.php for the error codes.', 500);
+                                    throw new \Exception('Error ' . $error . ' while uploading the file \'' . $name . '\'. See http://www.php.net/manual/en/features.file-upload.errors.php for the error codes.', 500);
                             }
                         }
                         else
@@ -167,7 +168,7 @@ class Restful_Server_Request
                             if (UPLOAD_ERR_OK == $file['error'])
                                 $this->data[$name] = array('mime' => $file['type'], 'content' => file_get_contents($file['tmp_name']));
                             else
-                                throw new Exception('Error ' . $file['error'] . ' while uploading the file \'' . $name . '\'. See http://www.php.net/manual/en/features.file-upload.errors.php for the error codes.', 500);
+                                throw new \Exception('Error ' . $file['error'] . ' while uploading the file \'' . $name . '\'. See http://www.php.net/manual/en/features.file-upload.errors.php for the error codes.', 500);
                         }
                     }
                     break;
@@ -178,7 +179,7 @@ class Restful_Server_Request
                     $this->data = (array) simplexml_load_file('php://input');
                     break;
                 default:
-                    throw new Exception('Unsupported request Content-Type.', 415);
+                    throw new \Exception('Unsupported request Content-Type.', 415);
             }
         }
 

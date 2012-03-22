@@ -17,28 +17,35 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * @category   Restful
- * @package    Restful_Server
- * @copyright  Copyright (c) 2012 Sergio Vaccaro <hujuice@inservibile.org>
- * @license    http://www.gnu.org/licenses/gpl-3.0.txt     GPLv3
+ * @package     Restful\Server\Resource
+ * @subpackage  Server
+ * @copyright   Copyright (c) 2012 Sergio Vaccaro <hujuice@inservibile.org>
+ * @license     http://www.gnu.org/licenses/gpl-3.0.txt     GPLv3
  * @version
  */
+namespace Restful\Server\Resource;
 
 /**
- * Restful Server Resource
+ * Restful Server Resource User
  *
- * @category   Restful
- * @package    Restful_Server
- * @copyright  Copyright (c) 2012 Sergio Vaccaro <hujuice@inservibile.org>
- * @license    http://www.gnu.org/licenses/gpl-3.0.txt     GPLv3
+ * @package     Restful\Server\Resource
+ * @subpackage  Server
+ * @copyright   Copyright (c) 2012 Sergio Vaccaro <hujuice@inservibile.org>
+ * @license     http://www.gnu.org/licenses/gpl-3.0.txt     GPLv3
  */
-class Restful_Server_Resource extends Restful_Server_ResourceAbstract
+class User extends \Restful\Server\Resource
 {
+    /**
+     * Default resource path
+     * @var string
+     */
+    protected $_defaultPath = '../resources';
+
     /**
      * Create the resource
      *
      * @param string $name
-     * @param Restful_Config|null $config
+     * @param \Restful\Config|null $config
      * @return void
      * @throw Exception
      */
@@ -46,12 +53,10 @@ class Restful_Server_Resource extends Restful_Server_ResourceAbstract
     {
         if ($config)
         {
-            if (empty($config->class))
-                $className = ucfirst($name);
-            else
-                $className = $config->class;
+            if (!$className = $config->class)
+                $className = $name;
 
-            $path = $config->path ? $config->path . DIRECTORY_SEPARATOR : '';
+            $path = $config->path ? $config->path : $this->_defaultPath;
 
             if ($config->construct)
                 $construct = $config->construct->toArray();
@@ -59,18 +64,18 @@ class Restful_Server_Resource extends Restful_Server_ResourceAbstract
                 $construct = array();
 
             $httpMethod = $config->httpMethod;
-            $max_age = $config->maxAge;
+            $max_age = $config->max_age;
         }
         else
         {
-            $className = ucfirst($name);
+            $className = $name;
             $construct = array();
             $httpMethod = false;
             $max_age = null;
-            $path = '';
+            $path = $this->_defaultPath;
         }
 
-        require_once($path . $className . '.php');
+        require_once($path . DIRECTORY_SEPARATOR . $className . '.php');
         parent::__construct($className, $construct, $httpMethod, $max_age);
     }
 }

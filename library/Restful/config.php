@@ -17,22 +17,23 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * @category   Restful
- * @package    Restful_Server
- * @copyright  Copyright (c) 2012 Sergio Vaccaro <hujuice@inservibile.org>
- * @license    http://www.gnu.org/licenses/gpl-3.0.txt     GPLv3
+ * @package     Restful
+ * @subpackage  Config
+ * @copyright   Copyright (c) 2012 Sergio Vaccaro <hujuice@inservibile.org>
+ * @license     http://www.gnu.org/licenses/gpl-3.0.txt     GPLv3
  * @version
  */
+namespace Restful;
 
 /**
  * Restful Configuration Manager
  *
- * @category   Restful
- * @package    Restful_Server
- * @copyright  Copyright (c) 2012 Sergio Vaccaro <hujuice@inservibile.org>
- * @license    http://www.gnu.org/licenses/gpl-3.0.txt     GPLv3
+ * @package     Restful
+ * @subpackage  Config
+ * @copyright   Copyright (c) 2012 Sergio Vaccaro <hujuice@inservibile.org>
+ * @license     http://www.gnu.org/licenses/gpl-3.0.txt     GPLv3
  */
-class Restful_Config implements Iterator
+class Config implements \Iterator
 {
     /**
      * Configuration
@@ -50,11 +51,14 @@ class Restful_Config implements Iterator
     /**
      * Expand the config keys in the Zend Framework way
      *
-     * @param array $config
+     * @param mixed $config
      * @return array
      */
     protected function _expandKeys($config)
     {
+        if (is_object($config))
+            $config = (array) $config;
+
         if (is_array($config))
         {
             foreach ($config as $key => & $value)
@@ -69,13 +73,13 @@ class Restful_Config implements Iterator
                             if (is_array($config[$parts[0]]))
                                 $config[$parts[0]][$parts[1]] = $value;
                             else
-                                throw new Exception('Cannot create sub-key ' . $parts[0] . ' as key already exists.');
+                                throw new \Exception('Cannot create sub-key ' . $parts[0] . ' as key already exists.');
                         }
                         else
                             $config[$parts[0]] = array($parts[1] => $value);
                     }
                     else
-                        throw new Exception('Invalid configuration key.');
+                        throw new \Exception('Invalid configuration key.');
 
                     unset($config[$key]);
                 }
@@ -94,13 +98,13 @@ class Restful_Config implements Iterator
      * @param array $config
      * @return @void
      */
-    public function __construct($config)
+    public function __construct(array $config)
     {
         $this->_config = $this->_expandKeys($config);
         if (is_array($this->_config))
             reset($this->_config);
         else
-            throw new Exception('Invalid configuration.');
+            throw new \Exception('Invalid configuration.');
     }
 
     /**
@@ -116,7 +120,7 @@ class Restful_Config implements Iterator
             if (is_scalar($this->_config[$key]))
                 return $this->_config[$key];
             else
-                return new Restful_Config($this->_config[$key]);
+                return new Config($this->_config[$key]);
         }
     }
 
@@ -126,7 +130,7 @@ class Restful_Config implements Iterator
      */
     public function __set($key, $value)
     {
-        throw new Exception(__CLASS__ . ' objects are not modifiable.');
+        throw new \Exception(__CLASS__ . ' objects are not modifiable.');
     }
 
     /**
@@ -159,7 +163,7 @@ class Restful_Config implements Iterator
         if (is_scalar(current($this->_config)))
             return current($this->_config);
         else
-            return new Restful_Config(current($this->_config));
+            return new Config(current($this->_config));
     }
 
     /**

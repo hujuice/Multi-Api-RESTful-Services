@@ -17,22 +17,23 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * @category   Restful
- * @package    Restful_Server
- * @copyright  Copyright (c) 2012 Sergio Vaccaro <hujuice@inservibile.org>
- * @license    http://www.gnu.org/licenses/gpl-3.0.txt     GPLv3
+ * @package     Restful
+ * @subpackage  Server
+ * @copyright   Copyright (c) 2012 Sergio Vaccaro <hujuice@inservibile.org>
+ * @license     http://www.gnu.org/licenses/gpl-3.0.txt     GPLv3
  * @version
  */
+namespace Restful;
 
 /**
  * Complete Restful Server
  *
- * @category   Restful
- * @package    Restful_Server
- * @copyright  Copyright (c) 2012 Sergio Vaccaro <hujuice@inservibile.org>
- * @license    http://www.gnu.org/licenses/gpl-3.0.txt     GPLv3
+ * @package     Restful
+ * @subpackage  Server
+ * @copyright   Copyright (c) 2012 Sergio Vaccaro <hujuice@inservibile.org>
+ * @license     http://www.gnu.org/licenses/gpl-3.0.txt     GPLv3
  */
-class Restful_Server
+class Server
 {
     /**
      * Service configuration
@@ -51,7 +52,7 @@ class Restful_Server
 
     /**
      * The request
-     * @var Restful_Server_Request
+     * @var Server\Request
      */
     protected $_request;
 
@@ -73,7 +74,7 @@ class Restful_Server
      * @param Exception $e
      * @return string
      */
-    protected function _digException($e)
+    protected function _digException(\Exception $e)
     {
         if ($prev = $e->getPrevious())
         {
@@ -100,7 +101,7 @@ class Restful_Server
             return false; // Back to ordinary errors
         else
         {
-            Restful_Server_Response::raw(500, 'Something went wrong in the framework.' . "\n" . $errstr, 'text/plain', 0, null, array());
+            Server\Response::raw(500, 'Something went wrong in the framework.' . "\n" . $errstr, 'text/plain', 0, null, array());
             exit;
         }
     }
@@ -111,7 +112,7 @@ class Restful_Server
      * @param Exception $exception
      * @return void
      */
-    public function exceptionHandler($exception)
+    public function exceptionHandler(\Exception $exception)
     {
         if ($exception->getCode())
             $code = $exception->getCode();
@@ -128,23 +129,12 @@ $code = 500;
                     "\n" . 'Stack trace:' . "\n" . $exception->getTraceAsString() . "\n" .
                     $this->_digException($exception);
 
-            Restful_Server_Response::raw($code, $body, 'text/plain', 0, null, '', array());
+            Server\Response::raw($code, $body, 'text/plain', 0, null, '', array());
         }
         else
-            Restful_Server_Response::raw($code, 'Something went wrong in the framework.' . "\n" . $exception->getMessage(), 'text/plain', 0, null, array());
+            Server\Response::raw($code, 'Something went wrong in the framework.' . "\n" . $exception->getMessage(), 'text/plain', 0, null, array());
 
         exit;
-    }
-
-    /**
-     * General autoloader for the whole application
-     *
-     * @param string $class
-     * @return void
-     */
-    public function autoloader($class)
-    {
-        @include_once(realpath(__DIR__ . '/..') . DIRECTORY_SEPARATOR . str_replace('_', DIRECTORY_SEPARATOR, (string) $class) . '.php');
     }
 
     /**
@@ -162,8 +152,9 @@ $code = 500;
         ini_set('default_mimetype', 'text/plain');
         ini_set('html_errors', false);
 
-        // Register the autoloader
-        spl_autoload_register(array($this, 'autoloader'));
+        // Default autoloader
+        spl_autoload_extensions('.php');
+        spl_autoload_register();
 
         // Configuration file
         $config = parse_ini_file($config, true);
@@ -171,22 +162,23 @@ $code = 500;
         // Server behaviour
         $this->_config = array_merge($this->_config, array_filter($config['server']));
 
+        // User defined resources
         $this->_resources = array();
         if ($config['resources'])
         {
-            $config['resources'] = new Restful_Config($config['resources']);
+            $config['resources'] = new Config($config['resources']);
             foreach($config['resources'] as $resourceName => $resourceConfig)
             {
                 $resourceName = strtolower($resourceName);
-                $this->_resources[$resourceName] = new Restful_Server_Resource($resourceName, $resourceConfig);
+                $this->_resources[$resourceName] = new Server\Resource\User($resourceName, $resourceConfig);
             }
         }
 
         // Add the Discover resource
-        $this->_resources['discover'] = new Restful_Server_ResourceInternal('Restful_Server_Discover', array('resources' => $this->_resources, 'baseUrl' => $this->_config['baseUrl']));
+        $this->_resources['discover'] = new Server\Resource('Restful\Server\Discover', array('resources' => $this->_resources, 'baseUrl' => $this->_config['baseUrl']));
 
         // Route
-        $this->_router = new Restful_Server_Router($this->_resources, $this->_config['baseUrl']);
+        $this->_router = new Server\Router($this->_resources, $this->_config['baseUrl']);
     }
 
     /**
@@ -195,7 +187,7 @@ $code = 500;
      */
     public function run()
     {
-        $request = new Restful_Server_Request();
+        $request = new Server\Request();
 
         if ($this->_router->route($request))
         {
@@ -271,6 +263,6 @@ Try to navigate http://' . $_SERVER['SERVER_NAME'] . '/' . $this->_config['baseU
                                             ),
                         'debug'     => $this->_config['debug'],
                         );
-        Restful_Server_Response::response($response);
+        Server\Response::response($response);
     }
 }

@@ -17,22 +17,23 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * @category   Restful
- * @package    Restful_Server
- * @copyright  Copyright (c) 2012 Sergio Vaccaro <hujuice@inservibile.org>
- * @license    http://www.gnu.org/licenses/gpl-3.0.txt     GPLv3
+ * @package     Restful\Server
+ * @subpackage  Server
+ * @copyright   Copyright (c) 2012 Sergio Vaccaro <hujuice@inservibile.org>
+ * @license     http://www.gnu.org/licenses/gpl-3.0.txt     GPLv3
  * @version
  */
+namespace Restful\Server;
 
 /**
  * Restful Server Response
  *
- * @category   Restful
- * @package    Restful_Server
- * @copyright  Copyright (c) 2012 Sergio Vaccaro <hujuice@inservibile.org>
- * @license    http://www.gnu.org/licenses/gpl-3.0.txt     GPLv3
+ * @package     Restful\Server
+ * @subpackage  Server
+ * @copyright   Copyright (c) 2012 Sergio Vaccaro <hujuice@inservibile.org>
+ * @license     http://www.gnu.org/licenses/gpl-3.0.txt     GPLv3
  */
-class Restful_Server_Response
+class Response
 {
     /**
      * Status codes
@@ -141,7 +142,7 @@ class Restful_Server_Response
         {
             case 'unknown type':
             case 'resource':
-                throw new Exception('Unsupported data type');
+                throw new \Exception('Unsupported data type');
             case 'NULL':
                 $html .= 'NULL';
                 break;
@@ -164,7 +165,7 @@ class Restful_Server_Response
                     if ($value)
                     {
                         if (is_scalar($value))
-                            $html .= '<dd style="padding-left: 4em">' . htmlspecialchars($value) . '</dd>';
+                            $html .= '<dd style="padding-left: 4em">' . nl2br(htmlspecialchars($value)) . '</dd>';
                         else
                             $html .= '<dd style="clear: left">' . self::data2html((array) $value) . '</dd>';
                     }
@@ -174,7 +175,7 @@ class Restful_Server_Response
                 $html .= '</dl>';
                 break;
             default:
-                throw new Exception('Unknown data type');
+                throw new \Exception('Unknown data type');
         }
         $html .= '</div>';
         return $html;
@@ -199,7 +200,7 @@ class Restful_Server_Response
 
         // Status
         if (!isset(self::$statuses[$status]))
-            throw new Exception('Internal status code inconcistency.');
+            throw new \Exception('Internal status code inconcistency.');
         else
             $headers[] = self::$statuses[$status];
 
@@ -211,7 +212,7 @@ class Restful_Server_Response
         if (in_array($content_type, self::$contentTypes))
             $headers[] = 'Content-Type: ' . $content_type;
         else
-            throw new Exception('Internal Content-Type inconcistency.');
+            throw new \Exception('Internal Content-Type inconcistency.');
 
         // Cache headers
         if ($max_age && ($max_age > 0))
