@@ -24,15 +24,12 @@ This framework has been built and tested under Linux/Apache/PHP
 environment.
 While PHP is the needed programming language, you'll be likely able to change
 the OS without difficults and to change the webserver giving your own
-rewriting rules (see INSTALL).
+rewriting rules (see below).
 
 Apache mod-rewriting is required.
 
 The framework make use of PHP namespaces and this constraint to PHP >= 5.3.x.
 JSON and WDDX must be supported by your PHP installation.
-
-Have your VirtualHost configured as follow (via included Apache configuration
-file or via .htaccess).
 
 INSTALLATION
 ============
@@ -68,6 +65,8 @@ If you don't want to stay in the document root, you can write:
 </Directory>
 
 --------------------------------------------------------------------------------
+but you'll need to set a baseUrl in the config.ini (see below).
+
 If you change the Apache configuration, gracefully restart Apache.
 
 Have this file hierarchy (see config.ini and index.php to customize it):
@@ -90,13 +89,11 @@ baseUrl), configure directories, caches and the resources themselves.
 Here is a basic example:
 --------------------------------------------------------------------------------
 
-; Paths are relative to the include_path
-; ================================================
 [server]
 ; Base URL (defaults to '')
 baseUrl = ""
 ; Explicit error messages (defaults to false)
-debug = true
+debug = false
 
 [resources]
 ; Configuration for each resource

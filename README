@@ -30,21 +30,21 @@ FEATURES
 
 Easily transform a generic PHP class in a RESTful API.
 A HTTP request will be converted in object creation and then one corresponding
-method execution. Havin only one method execution is a costraint from the
+method execution. Having only one method execution is a costraint from the
 stateless nature of RESTful webservices.
 
 One installation can manage many classes.
-The basic spl_autoload mechanism is implemented.
-You can spl_autoload_register you own autoload mechanism in the stack.
+The basic PHP spl_autoload() mechanism is implemented.
+You can spl_autoload_register() you own autoload mechanism in the stack.
 
 The framework provide a routing mechanism, providing consistent and multiformed
 URLs.
 http://mywebsite.domanin/resourcename/methodname?param1=value1&param2=value2
-http://mywebsite.domanin/resourcename?method=methodname&param1=value1&param2=value2
 where resources, methods and params names are the class names (converted to
 lowercase).
 
-Parameters' names, order and defaults are managed internally.
+Parameters' names, order and defaults are managed internally and fit the
+classes structure.
 
 The framework provide a discovery service, to make the consumer life easier.
 The discovery service extracts informations from the class and from its
@@ -53,7 +53,7 @@ services.
 
 GET, POST (untested), PUT (untested) and DELETE (untested) HTTP methods are
 supported. However, each class is bound to a single method. This limitation is
-to avoid a extra description for each class function.
+to avoid a extra configuration for each class function.
 
 The framework is able to output 4 'Content-Type:'s:
 - JSON;
