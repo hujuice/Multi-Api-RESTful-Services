@@ -21,7 +21,7 @@
  * @subpackage  Server
  * @copyright   Copyright (c) 2012 Sergio Vaccaro <hujuice@inservibile.org>
  * @license     http://www.gnu.org/licenses/gpl-3.0.txt     GPLv3
- * @version
+ * @version     1.0
  */
 namespace Restful\Server;
 

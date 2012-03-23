@@ -1,5 +1,5 @@
 <VirtualHost *:80>
-    ServerName	restful.yourdomain
+    ServerName	yoursite.yourdomain
 
     # Character encoding
     AddDefaultCharset utf-8
@@ -9,7 +9,6 @@
     CustomLog /var/log/apache2/restful-access_log vhost_combined
 
     ErrorLog /var/log/apache2/restful-error_log
-    #LogLevel debug
 
     DocumentRoot "/path/to/your/htdocs"
     <Directory "/path/to/your/htdocs">

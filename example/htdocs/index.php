@@ -9,4 +9,3 @@ $rest = new Restful\Server('../config.ini');
 
 // GO GO GO!!!
 $rest->run();
-
