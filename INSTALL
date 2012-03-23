@@ -18,4 +18,128 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 ================================================================
 
-Have your 'Restful/library' in the include_path.
+SYSTEM REQUIREMENTS
+===================
+This framework has been built and tested under Linux/Apache/PHP
+environment.
+While PHP is the needed programming language, you'll be likely able to change
+the OS without difficults and to change the webserver giving your own
+rewriting rules (see INSTALL).
+
+Apache mod-rewriting is required.
+
+The framework make use of PHP namespaces and this constraint to PHP >= 5.3.x.
+JSON and WDDX must be supported by your PHP installation.
+
+Have your VirtualHost configured as follow (via included Apache configuration
+file or via .htaccess).
+
+INSTALLATION
+============
+The instrucion below are relative to a Linux/Apache installation.
+
+Download or git-clone the source files.
+
+Have your 'library/Restful' in the include_path.
+
+Add to your VirtualHost/.htaccess configuration the following lines:
+--------------------------------------------------------------------------------
+
+<Directory /path/to/site/htdocs>
+    RewriteEngine On
+    RewriteCond %{REQUEST_FILENAME} -s [OR]
+    RewriteCond %{REQUEST_FILENAME} -l [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^.*$ - [NC,L]
+    RewriteRule ^.*$ index.php [NC,L]
+</Directory>
+
+--------------------------------------------------------------------------------
+If you don't want to stay in the document root, you can write:
+--------------------------------------------------------------------------------
+
+<Directory /path/to/site/htdocs/my/subdir>
+    RewriteEngine On
+    RewriteCond %{REQUEST_FILENAME} -s [OR]
+    RewriteCond %{REQUEST_FILENAME} -l [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^.*$ - [NC,L]
+    RewriteRule ^.*$ my/subdir/index.php [NC,L]
+</Directory>
+
+--------------------------------------------------------------------------------
+If you change the Apache configuration, gracefully restart Apache.
+
+Have this file hierarchy (see config.ini and index.php to customize it):
+├── config.ini
+├── htdocs
+│   ├── static_files_will_be_served
+│   │   ├── page1.html
+│   │   └── page2.php
+│   └── index.php
+├── resources
+│   ├── resource1.php
+│   └── resource2.php
+└── library
+    ├── Restful
+    └── your_stuff
+
+Open and edit the configuration file 'config.ini'.
+It is self-documented and allows to change the services root (providing a
+baseUrl), configure directories, caches and the resources themselves.
+Here is a basic example:
+--------------------------------------------------------------------------------
+
+; Paths are relative to the include_path
+; ================================================
+[server]
+; Base URL (defaults to '')
+baseUrl = ""
+; Explicit error messages (defaults to false)
+debug = true
+
+[resources]
+; Configuration for each resource
+; Resource names will be converted to lowercase
+
+; ============================= resource1
+; The resource classname and filename (defaults to the resource name)
+resource1.class = "MyClass"
+; The resource path (relative to the include_path, defaults to '../resources')
+resource1.path = "../resources"
+; The required HTTP method (defaults to "GET")
+resource1.httpMethod = 'GET'
+; Have Cache-Control headers (defaults to 0, no-cache)
+resource1.max_age = 600
+; Will be passed to the constructor
+resource1.construct.path_to_data = "path/to/my/data/file"
+resource1.construct.another_constructor_param = "param_value"
+resource1.construct.array_constructor_param.key1 = "value1"
+resource1.construct.array_constructor_param.key2 = "value2"
+
+; ============================= resource2
+; defaults oriented resource
+resource2 =
+
+--------------------------------------------------------------------------------
+
+Then, have this simple index.php
+--------------------------------------------------------------------------------
+
+<?php
+set_include_path(implode(PATH_SEPARATOR, array(
+    realpath(__DIR__ . '/../library'),
+    get_include_path(),
+)));
+
+require_once('restful/server.php');
+$rest = new Restful\Server('../config.ini');
+
+// GO GO GO!!!
+$rest->run();
+
+--------------------------------------------------------------------------------
+
+Done.
+Visit the framework root page with your browser and you'll be drived to the
+services usage.
