@@ -18,13 +18,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 ================================================================
 
-:Authors: Sergio Vaccaro (hujuice@inservibile.org)
-:Version: 1.0RC1
+Author: Sergio Vaccaro (hujuice@inservibile.org)
+Version: 1.0RC1
 
 DRAFT DRAFT DRAFT!!!
 This is a very new project, for now.
-Untested features are marked below.
+Untested features are marked in the FEATURES file.
 If you make use of some of them, please collaborate.
 
-This framework transform one or more PHP classes in RESTful webservices.
+This framework transform PHP classes in RESTful webservices.
 See FEATURES to learn more.
