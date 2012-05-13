@@ -36,12 +36,6 @@ namespace Restful\Server\Resource;
 class User extends \Restful\Server\Resource
 {
     /**
-     * Default resource path
-     * @var string
-     */
-    protected $_defaultPath = '../resources';
-
-    /**
      * Create the resource
      *
      * @param string $name
@@ -56,7 +50,8 @@ class User extends \Restful\Server\Resource
             if (!$className = $config->class)
                 $className = $name;
 
-            $path = $config->path ? $config->path : $this->_defaultPath;
+            if ($config->path)
+                require_once(realpath($config->path . DIRECTORY_SEPARATOR . $className . '.php'));
 
             if ($config->construct)
                 $construct = $config->construct->toArray();
@@ -72,10 +67,8 @@ class User extends \Restful\Server\Resource
             $construct = array();
             $httpMethod = false;
             $max_age = null;
-            $path = $this->_defaultPath;
         }
 
-        require_once($path . DIRECTORY_SEPARATOR . $className . '.php');
         parent::__construct($className, $construct, $httpMethod, $max_age);
     }
 }

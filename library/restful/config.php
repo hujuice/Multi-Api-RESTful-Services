@@ -134,6 +134,19 @@ class Config implements \Iterator
     }
 
     /**
+     * Indicate if a variable exists
+     * @param $key
+     * @return boolean
+     */
+    public function __isset($key)
+    {
+        if (isset($this->_config[$key]))
+            return true;
+        else
+            return false;
+    }
+
+    /**
      * Dump the whole configuration as array
      *
      * @return array
