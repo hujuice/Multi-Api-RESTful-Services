@@ -59,6 +59,8 @@ class Resource
         $fields = array(
                         'desc'      => '',
                         'purpose'   => '',
+                        'params'    => array(),
+                        'return'    => 'void',
                         );
         foreach (explode("\n", $comment) as $row)
         {
