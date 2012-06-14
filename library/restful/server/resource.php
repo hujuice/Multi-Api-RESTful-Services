@@ -62,14 +62,24 @@ class Resource
                         'params'    => array(),
                         'return'    => 'void',
                         );
+        // http://www.phpdoc.org/docs/latest/for-users/anatomy-of-a-docblock.html#short-description
+        // http://www.phpdoc.org/docs/latest/for-users/anatomy-of-a-docblock.html#long-description
         foreach (explode("\n", $comment) as $row)
         {
+            $desc = array();
             if (preg_match('/^\s*\*\s*(\w.*)$/', $row, $matches))
             {
                 if ($fields['desc'])
                     $fields['purpose'] .= $matches[1] . PHP_EOL;
                 else
-                    $fields['desc'] = $matches[1];
+                {
+                    if (preg_match('/^.+\.\s*$/', $matches[1]))
+                        $fields['desc'] = $matches[1];
+                    else if ($desc && trim($matches[1]))
+                        $fields['desc'] = implode(' ', $desc);
+                    else
+                        $desc[] = $matches[1];
+                }
             }
             else if (preg_match('/^\s*\*\s*@param\s([\w|]+)\s\$(\w+)\s*(.*)$/', $row, $matches))
                 $fields['params'][$matches[2]] = array('desc' => $matches[3], 'type' => $matches[1]);
