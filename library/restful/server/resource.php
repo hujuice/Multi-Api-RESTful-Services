@@ -64,27 +64,38 @@ class Resource
                         );
         // http://www.phpdoc.org/docs/latest/for-users/anatomy-of-a-docblock.html#short-description
         // http://www.phpdoc.org/docs/latest/for-users/anatomy-of-a-docblock.html#long-description
+        $text = array();
         foreach (explode("\n", $comment) as $row)
         {
-            $desc = array();
-            if (preg_match('/^\s*\*\s*(\w.*)$/', $row, $matches))
-            {
-                if ($fields['desc'])
-                    $fields['purpose'] .= $matches[1] . PHP_EOL;
-                else
-                {
-                    if (preg_match('/^.+\.\s*$/', $matches[1]))
-                        $fields['desc'] = $matches[1];
-                    else if ($desc && trim($matches[1]))
-                        $fields['desc'] = implode(' ', $desc);
-                    else
-                        $desc[] = $matches[1];
-                }
-            }
-            else if (preg_match('/^\s*\*\s*@param\s([\w|]+)\s\$(\w+)\s*(.*)$/', $row, $matches))
+            $row = preg_replace('/^\s*\*\s*/', '', $row);
+
+            if (preg_match('/^(\w.*)\s*$/', $row, $matches))
+                $text[] = $matches[1];
+            else if (!$row)
+                $text[] = '';
+            else if (preg_match('/^@param\s([\w|]+)\s\$(\w+)\s*(.*)$/', $row, $matches))
                 $fields['params'][$matches[2]] = array('desc' => $matches[3], 'type' => $matches[1]);
-            else if (preg_match('/^\s*\*\s*@return\s([\w|]+)\s*(.*)$/', $row, $matches))
+            else if (preg_match('/^@return\s([\w|]+)\s*(.*)$/', $row, $matches))
                 $fields['return'] = array('desc' => $matches[2], 'type' => $matches[1]);
+        }
+
+        // Split text in desc and purpose (shortDesc and longDesc)
+if (false && false !== strpos($text[0], 'Filtered posts lists'))
+{
+header('Content-Type: text/plain');
+var_dump($text);
+exit;
+}
+        $field = 'desc';
+        foreach ($text as $text_row)
+        {
+            if ($fields['desc'] && empty($text_row))
+                $field = 'purpose';
+            else
+                $fields[$field] .= $text_row . PHP_EOL;
+
+            if (preg_match('/^.+\.\s*$/', $text_row))
+                $field = 'purpose';
         }
 
         return $fields;
