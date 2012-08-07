@@ -89,7 +89,8 @@ class Router
             }
             else if ('*/*' == $content_type)
             {
-                $this->_params['contentType'] = Response::$contentTypes[0];
+                $contentTypes= array_values(Response::$contentTypes);
+                $this->_params['contentType'] = $contentTypes[0];
                 break;
             }
             else if ('*/' == substr($content_type, 0, 2))
