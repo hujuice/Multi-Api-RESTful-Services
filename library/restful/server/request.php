@@ -116,7 +116,7 @@ class Request
     }
 
     /**
-     * Analyze the HTTP requeset and prepare the object
+     * Analyze the HTTP request and prepare the object
      *
      * @return void
      * @throw Exception

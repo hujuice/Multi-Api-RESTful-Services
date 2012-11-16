@@ -282,6 +282,14 @@ class Response
         {
             case 'application/json':
                 $body = json_encode($info['data']);
+                if (!empty($info['route']['jsonp']))
+                {
+                    // Add a hard control over the $info['request']['jsonp'] value
+                    if (preg_match('/[^\w]/', $info['route']['jsonp']))
+                        throw new Exception('Please, provide a valid function name for jsonp');
+
+                    $body = $info['route']['jsonp'] . '(' . $body . ');';
+                }
                 break;
             case 'application/xml':
                 $body = wddx_serialize_value($info['data']);

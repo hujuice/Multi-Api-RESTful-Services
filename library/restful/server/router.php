@@ -140,30 +140,32 @@ class Router
 
                     // Check for extension
                     $method = explode('.', $parts[1], 2);
-                    if (isset($method[1]))
-                    {
-                        if (isset(Response::$contentTypes[$method[1]]))
-                        {
-                            $this->_params['contentType'] = Response::$contentTypes[$method[1]];
-                            $method = $method[0];
-                        }
-                        else
-                            $method = null;
-                    }
-                    else
-                        $method = $method[0];
+                    if (isset($method[1]) && isset(Response::$contentTypes[$method[1]]))
+                        $this->_params['contentType'] = Response::$contentTypes[$method[1]];
 
-                    if ($method && ($this->_params['method'] = $this->_resources[$this->_params['resource']]->checkMethod($method)))
+                    $method = $method[0];
+
+                    if ($this->_params['method'] = $this->_resources[$this->_params['resource']]->checkMethod($method))
                     {
                         // Params
                         if ('GET' == $request->method)
                             $data = $request->query;
                         else
                             $data = $request->data;
+
+                        // Check if it is a (valid) JSONp request
+                        if (!empty($data['jsonp']) && ($this->_params['contentType'] == Response::$contentTypes['json']))
+                        {
+                            $this->_params['jsonp'] = $data['jsonp'];
+                            unset($data['jsonp']);
+                        }
+
                         $this->_params['params'] = $this->_resources[$this->_params['resource']]->checkParams($this->_params['method'], $data);
                     }
                 }
             }
+            else
+                throw new Exception('Invalid HTTP method for this resource.');
         }
         else
         {
