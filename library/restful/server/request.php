@@ -133,8 +133,11 @@ class Request
         $this->uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 
         // Accept
-        $this->accept = $this->_parseAccept($_SERVER['HTTP_ACCEPT']);
-
+        //Verifica di esistenza della chiave HTTP_ACCEPT
+        if(array_key_exists('HTTP_ACCEPT',$_SERVER))
+            $this->accept = $this->_parseAccept($_SERVER['HTTP_ACCEPT']);
+        else 
+            $this->accept = array();
         // Query string
         $this->query = $_GET;
 
