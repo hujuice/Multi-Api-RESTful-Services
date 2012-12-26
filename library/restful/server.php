@@ -40,8 +40,9 @@ class Server
      * @var array
      */
     protected $_config = array(
-                            'baseUrl'       => '',
-                            'debug'         => false,
+                            'baseUrl'   => '',
+                            'html'      => 'default.html',
+                            'debug'     => false,
                             );
 
     /**
@@ -57,7 +58,7 @@ class Server
     protected $_request;
 
     /**
-     * Calcualte an etag base on content type and data array
+     * Calculate an etag, based on content type and data array
      *
      * @param array $data
      * @param string $content_type
@@ -119,8 +120,6 @@ class Server
         else
             $code = 500;
 
-$code = 500;
-
         if ($this->_config['debug'])
         {
             $body = 'Internal Exception' . "\n" .
@@ -170,12 +169,17 @@ $code = 500;
             foreach($config['resources'] as $resourceName => $resourceConfig)
             {
                 $resourceName = strtolower($resourceName);
+                if (('discover' == $resourceName) || ('ui' == $resourceName))
+                    throw new \Exception('The \'' . $resourceName . '\' resource name is reserved for internal purposes.', 500);
                 $this->_resources[$resourceName] = new Server\Resource\User($resourceName, $resourceConfig);
             }
         }
 
         // Add the Discover resource
         $this->_resources['discover'] = new Server\Resource('Restful\Server\Discover', array('resources' => $this->_resources, 'baseUrl' => $this->_config['baseUrl']));
+
+        // Add the JavaScript resource
+        $this->_resources['ui'] = new Server\Resource('Restful\Server\Ui');
 
         // Route
         $this->_router = new Server\Router($this->_resources, $this->_config['baseUrl']);
@@ -255,12 +259,14 @@ Try to navigate http://' . $_SERVER['SERVER_NAME'] . '/' . $this->_config['baseU
         $response = array(
                         'request'   => $request,
                         'route'     => $this->_router->getRouteParams(),
+                        'resource'  => $this->_router->getRouteParams('resource'),
                         'status'    => $status,
                         'data'      => $data,
                         'cache'     => array(
                                             'lastModified'  => $last_modified,
                                             'maxAge'        => $max_age,
                                             ),
+                        'html'      => $this->_config['html'],
                         'debug'     => $this->_config['debug'],
                         );
         Server\Response::response($response);

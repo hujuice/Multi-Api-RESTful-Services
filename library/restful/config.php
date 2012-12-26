@@ -53,6 +53,7 @@ class Config implements \Iterator
      *
      * @param mixed $config
      * @return array
+     * @throw Exception
      */
     protected function _expandKeys($config)
     {

@@ -50,8 +50,8 @@ class Members
      * Get users form a planet
      *
      * Try to give an
-     * indication about the
-     *                  people in a planet
+     * informations about the
+     * people in a planet
      *
      * @param string $planet A planet
      * @return array

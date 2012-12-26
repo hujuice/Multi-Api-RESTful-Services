@@ -48,6 +48,18 @@ class Discover
     protected $_resources;
 
     /**
+     * Give basic informations
+     * @return array
+     */
+    protected function _info()
+    {
+        return array(
+                    'host'      => $_SERVER['SERVER_NAME'],
+                    'base Url'  => $this->_baseUrl,
+                    );
+    }
+
+    /**
      * Build the discover
      *
      * @param array $resources
@@ -66,12 +78,13 @@ class Discover
      */
     public function resources()
     {
-        $resources = array('resources' => array());
+        $resources = $this->_info();
         foreach ($this->_resources as $name => $resource)
         {
             $resources['resources'][$name] = $resource->desc();
             $resources['resources'][$name]['HTTP'] = $resource->httpMethod();
-            $resources['resources'][$name]['methods'] = $this->methods($name);
+            $methods = $this->methods($name);
+            $resources['resources'][$name]['methods'] = $methods['methods'];
             $resources['resources'][$name]['discover'] = 'http://' . $_SERVER['SERVER_NAME'] . $this->_baseUrl . 'discover/methods?resource=' . $name;
         }
 
@@ -86,18 +99,21 @@ class Discover
      */
     public function methods($resource)
     {
-        $methods = array();
+        $methods = $this->_info();
         if (isset($this->_resources[$resource]))
         {
+            $methods['resource'] = $resource;
+            $methods['methods'] = array();
             foreach ($this->_resources[$resource]->getMethods() as $method)
             {
-                //$methods[$method] = $this->_resources[$resource]->desc($method);
+                $methods['methods'][$method] = array();
                 $desc = $this->_resources[$resource]->desc($method);
-                $methods[$method]['desc'] = $desc['desc'];
-                $methods[$method]['purpose'] = $desc['purpose'];
-                $methods[$method]['params'] = $this->params($resource, $method);
-                $methods[$method]['return'] = $desc['return'];
-                $methods[$method]['discover'] = 'http://' . $_SERVER['SERVER_NAME'] . $this->_baseUrl . 'discover/params?resource=' . $resource . '&method=' . $method;
+                $methods['methods'][$method]['desc'] = $desc['desc'];
+                $methods['methods'][$method]['purpose'] = $desc['purpose'];
+                $params = $this->params($resource, $method);
+                $methods['methods'][$method]['params'] = $params['params'];
+                $methods['methods'][$method]['return'] = $desc['return'];
+                $methods['methods'][$method]['discover'] = 'http://' . $_SERVER['SERVER_NAME'] . $this->_baseUrl . 'discover/params?resource=' . $resource . '&method=' . $method;
             }
 
             return $methods;
@@ -113,11 +129,16 @@ class Discover
      */
     public function params ($resource, $method)
     {
-        $params = array();
+        $params = $this->_info();
         if (isset($this->_resources[$resource]))
         {
+            $params['resource'] = $resource;
             if ($method = $this->_resources[$resource]->checkMethod($method))
-                return $this->_resources[$resource]->getParams($method);
+            {
+                $params['method'] = $method;
+                $params['params'] = $this->_resources[$resource]->getParams($method);
+                return $params;
+            }
         }
     }
 }

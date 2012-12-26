@@ -87,29 +87,13 @@ class Response
      * Supported output content-types
      * @var array
      */
-    public static $contentTypes = array(
+    public static $contentTypes = array( // The order matter, see router.php
                                     'json'  => 'application/json',
                                     'xml'   => 'application/xml',
+                                    'js'    => 'text/javascript',
                                     'html'  => 'text/html',
                                     'txt'   => 'text/plain',
                                     );
-
-    /**
-     * HTML response template
-     * @var string
-     */
-    protected static $htmlTemplate = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
-<head>
-<title>Restful Services Discovery</title>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<meta name="description" content="Multi-API Restful Services - Server" />
-</head>
-<body style="margin: 0">
-<h1 style="margin: 0; padding: 1em; background-color: #437"><a href="/" style="color: #fff; text-decoration: none">Restful Services Discovery</a></h1>
-<!-- {dinamic} -->
-</body>
-</html>';
 
     /**
      * HTTP Status code
@@ -155,9 +139,8 @@ class Response
                 $html .= $data;
                 break;
             case 'object':
-                $data = (array) $data;
-                break;
             case 'array':
+                $data = (array) $data;
                 $html .= '<dl style="border: 1px dotted #999; margin: 0.5em">';
                 foreach ($data as $key => $value)
                 {
@@ -274,30 +257,43 @@ class Response
         if (isset($info['route']['contentType']))
             $content_type = $info['route']['contentType'];
         else
-            $content_type = self::$statuses['txt'];
+            $content_type = self::$contentTypes['txt'];
 
         $etag = md5(serialize(array('data' => $info['data'], 'contentType' => $content_type)));
 
         switch($content_type)
         {
-            case 'application/json':
+            case self::$contentTypes['json']:
                 $body = json_encode($info['data']);
-                if (!empty($info['route']['jsonp']))
-                {
-                    // Add a hard control over the $info['request']['jsonp'] value
-                    if (preg_match('/[^\w]/', $info['route']['jsonp']))
-                        throw new Exception('Please, provide a valid function name for jsonp');
-
-                    $body = $info['route']['jsonp'] . '(' . $body . ');';
-                }
                 break;
-            case 'application/xml':
+            case self::$contentTypes['js']:
+                if (empty($info['route']['jsonp'])) // Plain JavaScript for ui resource
+                    $body = $info['data'];
+                else
+                    $body = $info['route']['jsonp'] . '(' . json_encode($info['data']) . ');';
+                break;
+            case self::$contentTypes['xml']:
                 $body = wddx_serialize_value($info['data']);
                 break;
-            case 'text/html':
-                $body = preg_replace('/<!-- \{dinamic\} -->/', self::data2html($info['data']), str_replace("\n", '', self::$htmlTemplate));
+            case self::$contentTypes['html']:
+                $html = file_get_contents($info['html'], true);
+
+                // Check for marker
+                if (strpos($html, '<!-- {dinamic} -->') === false)
+                {
+                    if (strpos($html, '</body>') === false)
+                        throw new Exception('Invalid HTML template. Please validate it with http://validator.w3.org/');
+                    $html = str_replace('</body>', '<!-- {dinamic} -->' . PHP_EOL . '</body>', $html);
+                }
+
+                // JavaScript
+                if (strpos($html, '</head>') === false)
+                    throw new Exception('Invalid HTML template. Please validate it with http://validator.w3.org/');
+                $html = str_replace('</head>', '<script type="text/javascript" src="/ui/get"></script>' . PHP_EOL . '</head>', $html);
+
+                $body = preg_replace('/<!-- \{dinamic\} -->/', self::data2html($info['data']), str_replace("\n", '', $html));
                 break;
-            case 'text/plain':
+            case self::$contentTypes['txt']:
                 $body = print_r($info['data'], true);
                 break;
         }

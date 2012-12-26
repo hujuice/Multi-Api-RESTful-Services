@@ -136,8 +136,8 @@ class Request
         //Verifica di esistenza della chiave HTTP_ACCEPT
         if(array_key_exists('HTTP_ACCEPT',$_SERVER))
             $this->accept = $this->_parseAccept($_SERVER['HTTP_ACCEPT']);
-        else 
-            $this->accept = array();
+        else
+            $this->accept = array('*/*');
         // Query string
         $this->query = $_GET;
 

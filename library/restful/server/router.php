@@ -79,18 +79,18 @@ class Router
      */
     public function route(Request $request)
     {
-        // Content-Type
+        // Valid Content-Types
+        $content_types = array();
         foreach ($request->accept as $content_type)
         {
             if (in_array($content_type, Response::$contentTypes))
             {
-                $this->_params['contentType'] = $content_type;
+                $content_types = array($content_type);
                 break;
             }
             else if ('*/*' == $content_type)
             {
-                $contentTypes= array_values(Response::$contentTypes);
-                $this->_params['contentType'] = $contentTypes[0];
+                $content_types = array_values(Response::$contentTypes);
                 break;
             }
             else if ('*/' == substr($content_type, 0, 2))
@@ -100,7 +100,7 @@ class Router
                 {
                     if (strstr($allowed, '/') == $subtype)
                     {
-                        $this->_params['contentType'] = $allowed;
+                        $content_types[] = $allowed;
                         break 2;
                     }
                 }
@@ -112,7 +112,7 @@ class Router
                 {
                     if (strstr($allowed, '/', true) == $subtype)
                     {
-                        $this->_params['contentType'] = $allowed;
+                        $content_types[] = $allowed;
                         break 2;
                     }
                 }
@@ -124,48 +124,67 @@ class Router
         {
             $parts = explode('/', $path);
             $parts[0] = strtolower($parts[0]);
-            if (isset($this->_resources[$parts[0]]) && ($request->method == ($this->_resources[$parts[0]]->httpMethod())))
+
+            // Checks
+            if (!isset($this->_resources[$parts[0]]))
+                throw new \Exception('Invalid resource.');
+            if ($request->method != $this->_resources[$parts[0]]->httpMethod())
+                throw new \Exception('Invalid HTTP method for this resource.');
+
+            // Route
+            $resource = $parts[0];
+
+            if ('ui' == $resource)
             {
-                $resource = $parts[0];
-
-                if (empty($parts[1]))
-                {
-                    $this->_params['resource'] = 'discover';
-                    $this->_params['method']   = 'methods';
-                    $this->_params['params'] = array('resource' => $resource);
-                }
-                else
-                {
-                    $this->_params['resource'] = $resource;
-
-                    // Check for extension
-                    $method = explode('.', $parts[1], 2);
-                    if (isset($method[1]) && isset(Response::$contentTypes[$method[1]]))
-                        $this->_params['contentType'] = Response::$contentTypes[$method[1]];
-
-                    $method = $method[0];
-
-                    if ($this->_params['method'] = $this->_resources[$this->_params['resource']]->checkMethod($method))
-                    {
-                        // Params
-                        if ('GET' == $request->method)
-                            $data = $request->query;
-                        else
-                            $data = $request->data;
-
-                        // Check if it is a (valid) JSONp request
-                        if (!empty($data['jsonp']) && ($this->_params['contentType'] == Response::$contentTypes['json']))
-                        {
-                            $this->_params['jsonp'] = $data['jsonp'];
-                            unset($data['jsonp']);
-                        }
-
-                        $this->_params['params'] = $this->_resources[$this->_params['resource']]->checkParams($this->_params['method'], $data);
-                    }
-                }
+                $content_types = array(Response::$contentTypes['js']);
+                $this->_params['resource'] = 'ui';
+                $this->_params['method']   = 'get';
+                $this->_params['params'] = array();
+            }
+            else if (empty($parts[1]))
+            {
+                $this->_params['resource'] = 'discover';
+                $this->_params['method']   = 'methods';
+                $this->_params['params'] = array('resource' => $resource);
             }
             else
-                throw new Exception('Invalid HTTP method for this resource.');
+            {
+                $this->_params['resource'] = $resource;
+
+                // Check for extension
+                $method = explode('.', $parts[1], 2);
+                if (isset($method[1]) && isset(Response::$contentTypes[$method[1]]))
+                    $this->_params['contentType'] = Response::$contentTypes[$method[1]];
+
+                $method = $method[0];
+
+                if ($this->_params['method'] = $this->_resources[$this->_params['resource']]->checkMethod($method))
+                {
+                    // Params
+                    if ('GET' == $request->method)
+                        $data = $request->query;
+                    else
+                        $data = $request->data;
+
+                    // Check if it is a (valid) JSONp request
+                    if (!empty($data['jsonp']) && in_array(Response::$contentTypes['js'], $content_types))
+                    {
+                        // Add a hard control over the $data['jsonp'] value (risk of JS injection)
+                        if (preg_match('/[^\w]/', $data['jsonp']))
+                            throw new Exception('Please, provide a valid function name for jsonp.');
+
+                        $content_types = array(Response::$contentTypes['js']);
+                        $this->_params['jsonp'] = $data['jsonp'];
+                        unset($data['jsonp']);
+                    }
+                    else if (empty($data['jsonp']) && ($content_types[0] == Response::$contentTypes['js']))
+                    {
+                        $this->_params['jsonp'] = 'parseResponse';
+                    }
+
+                    $this->_params['params'] = $this->_resources[$this->_params['resource']]->checkParams($this->_params['method'], $data);
+                }
+            }
         }
         else
         {
@@ -173,6 +192,9 @@ class Router
             $this->_params['method']   = 'resources';
             $this->_params['params'] = array();
         }
+
+        // Content-Type by order
+        $this->_params['contentType'] = $content_types[0];
 
         if ($this->_params['contentType'] &&
             $this->_params['resource'] &&
