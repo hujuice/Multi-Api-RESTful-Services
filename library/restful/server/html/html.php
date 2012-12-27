@@ -23,38 +23,51 @@
  * @license     http://www.gnu.org/licenses/gpl-3.0.txt     GPLv3
  * @version     1.0
  */
-namespace Restful\Server;
+namespace Restful\Server\Html;
 
 /**
- * Provide Javascript in HTML outputs
+ * HTML output factory method
  *
  * @package     Restful\Server
  * @subpackage  Server
  * @copyright   Copyright (c) 2012 Sergio Vaccaro <hujuice@inservibile.org>
  * @license     http://www.gnu.org/licenses/gpl-3.0.txt     GPLv3
  */
-class Ui
+class Html
 {
     /**
-     * JavaScript file
-     * @var string
+     * Select HTML class upon output type
+     * @param array $info
+     * @return Restful\Server\htmlInterface
      */
-    protected $_javascript = 'html/ui.js';
-
-    /**
-     * Output javascript
-     */
-    public function get()
+    public static function create($info)
     {
-        ob_start();
-        echo file_get_contents($this->_javascript, true);
+        // Prepare the template
+        $html = file_get_contents($info['html'], true);
+        unset($info['html']);
+        if (strpos($html, '<!-- {dynamic} -->') === false)
+        {
+            if (strpos($html, '</body>') === false)
+                throw new Exception('Invalid HTML template. Please validate it with http://validator.w3.org/');
+            $html = str_replace('</body>', '<!-- {dynamic} -->' . PHP_EOL . '</body>', $html);
+        }
+        if (empty($info['debug']))
+            $html = (string) $html;
+        else
+            $html = str_replace("\n", '', (string) $html);
+
+        // Make a decision
+        $resource = $info['resource'];
+        unset($info['resource']);
+
+        if ('discover' == $resource)
+            return new discover($info, $html);
+        else
+            return new response($info, $html);
     }
 
     /**
-     * Short usage
+     * Avoid object instances
      */
-    public function __invoke()
-    {
-        $this->get();
-    }
+    private function __construct() {}
 }

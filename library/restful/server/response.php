@@ -114,57 +114,6 @@ class Response
     protected $_template;
 
     /**
-     * Format data in a simple HTML layout
-     *
-     * @param mixed $data
-     * @return string
-     */
-    public static function data2html($data)
-    {
-        $html = '<div class="Restful_Data">'; // Avoid to write in body directly
-        switch(gettype($data))
-        {
-            case 'unknown type':
-            case 'resource':
-                throw new \Exception('Unsupported data type');
-            case 'NULL':
-                $html .= 'NULL';
-                break;
-            case 'boolean':
-                $html .= $data ? 'true' : 'false';
-                break;
-            case 'integer':
-            case 'double':
-            case 'string':
-                $html .= $data;
-                break;
-            case 'object':
-            case 'array':
-                $data = (array) $data;
-                $html .= '<dl style="border: 1px dotted #999; margin: 0.5em">';
-                foreach ($data as $key => $value)
-                {
-                    $html.= '<dt style="float: left; font-weight: bold">' . htmlspecialchars($key) . '</dt>';
-                    if ($value)
-                    {
-                        if (is_scalar($value))
-                            $html .= '<dd style="padding-left: 4em">' . nl2br(htmlspecialchars($value)) . '</dd>';
-                        else
-                            $html .= '<dd style="clear: left">' . self::data2html((array) $value) . '</dd>';
-                    }
-                    else
-                        $html .= '<dd>&nbsp;</dd>';
-                }
-                $html .= '</dl>';
-                break;
-            default:
-                throw new \Exception('Unknown data type');
-        }
-        $html .= '</div>';
-        return $html;
-    }
-
-    /**
      * Generate immediately a http output
      *
      * @param integer $status
@@ -225,7 +174,7 @@ class Response
         if ($body)
         {
             ob_start();
-            if (!empty($_GET['debug']) && (self::$contentTypes['html'] == $content_type)) // Dump debug info
+            if (self::$contentTypes['html'] == $content_type) // Dump debug info
             {
                 $request_headers = apache_request_headers();
                 $html = '';
@@ -276,22 +225,8 @@ class Response
                 $body = wddx_serialize_value($info['data']);
                 break;
             case self::$contentTypes['html']:
-                $html = file_get_contents($info['html'], true);
-
-                // Check for marker
-                if (strpos($html, '<!-- {dinamic} -->') === false)
-                {
-                    if (strpos($html, '</body>') === false)
-                        throw new Exception('Invalid HTML template. Please validate it with http://validator.w3.org/');
-                    $html = str_replace('</body>', '<!-- {dinamic} -->' . PHP_EOL . '</body>', $html);
-                }
-
-                // JavaScript
-                if (strpos($html, '</head>') === false)
-                    throw new Exception('Invalid HTML template. Please validate it with http://validator.w3.org/');
-                $html = str_replace('</head>', '<script type="text/javascript" src="/ui/get"></script>' . PHP_EOL . '</head>', $html);
-
-                $body = preg_replace('/<!-- \{dinamic\} -->/', self::data2html($info['data']), str_replace("\n", '', $html));
+                $html = Html\Html::create($info);
+                $body = $html->get();
                 break;
             case self::$contentTypes['txt']:
                 $body = print_r($info['data'], true);
@@ -305,30 +240,6 @@ class Response
         {
             $status = 304;
             $body = null;
-        }
-
-        if (!empty($_GET['debug']) && (self::$contentTypes['html'] == $content_type)) // Dump debug info
-        {
-            $html  = '<div style="background-color: #eee; padding: 0.5em">';
-
-            $html .= '<h2>Request</h2>';
-            $html .= '<p style="font-size: 1.5em; font-weight: bold"><tt>' . $info['request']->method . ' ' . $info['request']->uri . '?' . htmlspecialchars(http_build_query($info['request']->query)) . '</tt></p>';
-            $html .= '<h2>Request headers</h2>';
-            $html .= '<div><tt><!-- {request_headers} --></tt></div>';
-            $html .= '<p>POST data:</p><pre>' . print_r($info['request']->data, true) . '</pre>';
-
-            $html .= '<h2>Routing</h2>';
-            $html .= '<pre>' . print_r($info['route'], true) . '</pre>';
-
-            $html .= '<h2>Status code</h2>';
-            $html .= '<p style="font-size: 1.5em; font-weight: bold"><tt>' . $info['status'] . '</tt></p>';
-
-            $html .= '<h2>Response headers</h2>';
-            $html .= '<div><tt><!-- {response_headers} --></tt></div>';
-
-            $html .= '</div>';
-
-            $body = preg_replace('/<\/body>/', $html . '</body>', $body);
         }
 
         self::raw($status, $body, $content_type, $info['cache']['maxAge'], $info['cache']['lastModified'], $etag);

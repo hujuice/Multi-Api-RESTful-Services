@@ -55,7 +55,7 @@ class Discover
     {
         return array(
                     'host'      => $_SERVER['SERVER_NAME'],
-                    'base Url'  => $this->_baseUrl,
+                    'baseUrl'   => $this->_baseUrl,
                     );
     }
 

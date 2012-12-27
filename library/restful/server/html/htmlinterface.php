@@ -23,38 +23,29 @@
  * @license     http://www.gnu.org/licenses/gpl-3.0.txt     GPLv3
  * @version     1.0
  */
-namespace Restful\Server;
+namespace Restful\Server\Html;
 
 /**
- * Provide Javascript in HTML outputs
+ * HTML output interface
  *
  * @package     Restful\Server
  * @subpackage  Server
  * @copyright   Copyright (c) 2012 Sergio Vaccaro <hujuice@inservibile.org>
  * @license     http://www.gnu.org/licenses/gpl-3.0.txt     GPLv3
  */
-class Ui
+interface HtmlInterface
 {
     /**
-     * JavaScript file
-     * @var string
+     * Get informations and template
+     * @param array $info
+     * @param string $html
+     * @return void
      */
-    protected $_javascript = 'html/ui.js';
+    public function __construct($info, $html);
 
     /**
-     * Output javascript
+     * Return HTML body
+     * @return string
      */
-    public function get()
-    {
-        ob_start();
-        echo file_get_contents($this->_javascript, true);
-    }
-
-    /**
-     * Short usage
-     */
-    public function __invoke()
-    {
-        $this->get();
-    }
+    public function get();
 }
