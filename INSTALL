@@ -28,7 +28,7 @@ rewriting rules (see below).
 
 Apache mod-rewriting is required.
 
-The framework make use of PHP namespaces and this constraint to PHP >= 5.3.x.
+The framework make use of PHP namespaces and this constraint to PHP >= 5.3.3.
 JSON and WDDX must be supported by your PHP installation.
 
 INSTALLATION

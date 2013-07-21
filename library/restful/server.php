@@ -36,7 +36,7 @@ namespace Restful;
 class Server
 {
     /**
-     * Service configuration
+     * Service default configuration
      * @var array
      */
     protected $_config = array(

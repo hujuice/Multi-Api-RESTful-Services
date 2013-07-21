@@ -69,8 +69,8 @@ class Discover implements htmlInterface
                 $body .= '<div><strong>?' . htmlspecialchars($name) . '=</strong><em>' . $param['type'] . '</em><br /><span class="small">' . htmlspecialchars($param['desc']) . '</span></div>';
                 $body .= '<div style="display: none">';
                 $body .= '<h6>Type</h6><p class="small">' . $param['type'] . '</p>';
-                $body .= '<h6>Defaults to</h6><p class="small">' . (string) $param['defaults to'] . '</p>';
-                $body .= '<h6>Optional</h6><p class="small">' . ($param['is optional'] ? 'Yes' : 'No') . '</p>';
+                $body .= '<h6>Defaults to</h6><pre class="small">' . var_export($param['defaults_to'], true) . '</pre>';
+                $body .= '<h6>Optional</h6><p class="small">' . ($param['is_optional'] ? 'Yes' : 'No') . '</p>';
                 /*
                 foreach ($param as $item => $value)
                     $body .= '<dd>' . htmlspecialchars($item) . '</dd><dt>' . htmlspecialchars($value) . '</dt>';

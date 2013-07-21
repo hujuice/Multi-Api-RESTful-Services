@@ -133,10 +133,12 @@ exit;
                 $params[$name]['type'] = $comment['params'][$name]['type'];
             }
 
-            $params[$name]['is optional'] = $param->isOptional();
+            $params[$name]['is_optional'] = $param->isOptional();
 
-            if ($params[$name]['is optional'])
-                $params[$name]['defaults to'] = $param->getDefaultValue();
+            if ($params[$name]['is_optional'])
+                $params[$name]['defaults_to'] = $param->getDefaultValue();
+            else
+                $params[$name]['defaults_to'] = null;
 
             $params[$name]['position'] = $param->getPosition();
         }
@@ -163,8 +165,8 @@ exit;
                 // TODO More complex type check
                 $params[$name] = $inputParams[$name];
             }
-            else if ($value['is optional'])
-                $params[$name] = $value['defaults to'];
+            else if ($value['is_optional'])
+                $params[$name] = $value['defaults_to'];
             else
                 return;
         }

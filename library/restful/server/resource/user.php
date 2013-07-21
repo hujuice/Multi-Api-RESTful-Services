@@ -60,9 +60,6 @@ class User extends \Restful\Server\Resource
 
             $httpMethod = $config->httpMethod;
             $max_age = $config->max_age;
-
-            if ('get' != strtolower($httpMethod))
-                throw new \Exception('The ' . $httpMethod . ' is still unsupported. Want you contribute? https://github.com/hujuice/Multi-Api-RESTful-Services');
         }
         else
         {
