@@ -2,33 +2,7 @@
 // http://www.jquery4u.com/javascript/dynamically-load-jquery-library-javascript/
 (function () {
 
-    function loadScript(url, callback) {
-        if (typeof(jQuery) == 'undefined') {
-            var script = document.createElement("script")
-            script.type = "text/javascript";
-
-            if (script.readyState) { //IE
-                script.onreadystatechange = function () {
-                    if (script.readyState == "loaded" || script.readyState == "complete") {
-                        script.onreadystatechange = null;
-                        callback();
-                    }
-                };
-            } else { //Others
-                script.onload = function () {
-                    callback();
-                };
-            }
-
-            script.src = url;
-            document.getElementsByTagName("head")[0].appendChild(script);
-        } else {
-            callback();
-        }
-    }
-
-    loadScript("http://code.jquery.com/jquery-latest.min.js", function () {
-
+    function main() {
         //jQuery loaded
         $(function() {
             $('.mars div > div:first-child').click(function () {
@@ -64,6 +38,28 @@
                 return false;
             });
         });
-    });
+    }
+    
+    if (typeof(jQuery) == 'undefined') {
+        var script = document.createElement("script")
+        script.type = "text/javascript";
 
+        if (script.readyState) { //IE
+            script.onreadystatechange = function () {
+                if (script.readyState == "loaded" || script.readyState == "complete") {
+                    script.onreadystatechange = null;
+                    main();
+                }
+            };
+        } else { //Others
+            script.onload = function () {
+                main();
+            };
+        }
+
+        script.src = "http://code.jquery.com/jquery-latest.min.js";
+        document.getElementsByTagName("head")[0].appendChild(script);
+    } else {
+        main();
+    }
 })();
