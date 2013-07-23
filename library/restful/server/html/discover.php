@@ -98,10 +98,11 @@ class Discover implements htmlInterface
             foreach ($methods as $name => $method)
             {
                 $body .= '<div>';
-                $body .= '<div><strong>' . $base . htmlspecialchars($name) . '</strong><br /><span class="small">' . htmlspecialchars($method['desc']) . '</span></div>';
+                $body .= '<div><strong>' . htmlspecialchars($name) . '</strong><br /><span class="small">' . htmlspecialchars($method['desc']) . '</span></div>';
                 $body .= '<div style="display: none">';
                 $body .= '<p class="small tool"><a href="javascript:">sandbox</a></p>';
                 $body .= '<h5>Description</h5><p class="small">' . $method['purpose'] . '</p>';
+                $body .= '<h4>Base url</h4><p class="small">' . $base . htmlspecialchars($name) . '</p>';
                 $body .= $this->_params($method['params']);
                 $body .= '<h5>Discover</h5><p class="small"><a href="' . htmlspecialchars($method['discover']) . '">' . htmlspecialchars($method['discover']) . ' </a></p>';
                 $body .= '</div>';
@@ -127,9 +128,10 @@ class Discover implements htmlInterface
             foreach ($resources as $name => $resource)
             {
                 $body .= '<div>';
-                $body .= '<div><strong>' . $base . htmlspecialchars($name) . '</strong><br /><span class="small">' . htmlspecialchars($resource['desc']) . '</span></div>';
+                $body .= '<div><strong>' . htmlspecialchars($name) . '</strong><br /><span class="small">' . htmlspecialchars($resource['desc']) . '</span></div>';
                 $body .= '<div style="display: none">';
                 $body .= '<h4>Description</h4><p class="small">' . $resource['purpose'] . '</p>';
+                $body .= '<h4>Base url</h4><p class="small">' . $base . htmlspecialchars($name) . '</p>';
                 $body .= '<h4>HTTP method</h4><p class="small">' . $resource['HTTP'] . '</p>';
                 $body .= '<h4>Discover</h4><p class="small"><a href="' . htmlspecialchars($resource['discover']) . '">' . htmlspecialchars($resource['discover']) . ' </a></p>';
                 $body .= $this->_methods($resource['methods'], $base . $name . '/');
@@ -172,12 +174,44 @@ header('Content-Type: text/plain');
 print_r($this->_info);
 exit;
 */
-        $body  = '<h2>Discovery service for <a href="' . $this->_base . '">' . $this->_base . '</a></h2>';
+        $url = $this->_base;
+        $body  = '<h2>Discovery service for <a href="' . $url . '">' . $url . '</a></h2>';
+        $body .= '<div class="intro">';
+        $body .= '<p>This website offers descriptions, discovery service for both human and machines and sandboxes for the webservices supplied by this host.<br />
+                  It responds for every <tt>Accept: text/html</tt> http header (e.g.: your browser) or other unsupported content types. Supported content types are:</p>';
+        $body .= '<dl>';
+        $body .= '<dt><strong>JSON</strong></dt><dd><tt>application/json</tt></dd>';
+        $body .= '<dt><strong>JSONp</strong></dt><dd><tt>text/javascript</tt></dd>';
+        $body .= '<dt><strong>XML</strong>, <a href="http://it1.php.net/manual/en/intro.wddx.php">WDDX</a></dt><dd><tt>application/xml</tt></dd>';
+        $body .= '<dt><strong>TEXT</strong>, useful for debugging</dt><dd><tt>text/plain</tt></dd>';
+        $body .= '<dt><strong>HTML</strong>, discovery, documentation and sandbox tools</dt><dd><tt>text/html</tt></dd>';
+        $body .= '</dl>';
+        $body .= '<p>There\'s a lot of useful borowser plugins to easly manage the <tt>Accept</tt> header during consuming development. Our choice is <em><a href="http://www.garethhunt.com/modifyheaders/">Modify Headers</a></em> for <a href="http://www.mozilla.org/firefox">Firefox</a>.</p>';
+        $body .= '</div>';
+        $body .= '<div class="info">';
+        if (isset($this->_info['data']['resource']))
+        {
+            $resource = $this->_info['data']['resource'];
+            $url .= $resource . '/';
+            $body .= "<h3>Resource: '$resource'</u></h3>";
+            if (isset($this->_info['data']['method']))
+            {
+                $method = $this->_info['data']['method'];
+                $url .= $method;
+                $body .= "<h3>Method: '$method'</h3>";
+            }
+            else
+                $body .= '<h3>All methods</h3>';
+        }
+        else
+            $body .= '<h3>All resources</h3>';
+        $body .= '<h3>Url: <a href="' . $url . '">' . $url . '</a></h3>';
+        $body .= '</div>';
         $body .= '<div class="mars">';
         if (isset($this->_info['data']['resources']))
             $body .= $this->_resources($this->_info['data']['resources'], $this->_base);
         else if (isset($this->_info['data']['methods']))
-            $body .= $this->_methods($this->_info['data']['methods']);
+            $body .= $this->_methods($this->_info['data']['methods'], $this->_base . $this->_info['data']['resource'] . '/');
         else if (isset($this->_info['data']['params']))
             $body .= $this->_params($this->_info['data']['params']);
         $body .= '</div>';
