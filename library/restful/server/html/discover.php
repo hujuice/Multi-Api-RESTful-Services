@@ -110,7 +110,7 @@ class Discover implements htmlInterface
                     $body .= '<option value="' . htmlspecialchars($label) . '">' . htmlspecialchars($content_type) . '</option>';
                 $body .= '</select><br />';
                 $body .= '<input type="submit" value="Go" />';
-                $body .= '</form><div class="status"></div><div class="message"></div><pre></pre></div>';
+                $body .= '</form><pre class="status"></pre><pre class="message"></pre><pre class="dialog"></pre></div>';
                 $body .= '</div>';
                 $body .= '</div>';
             }

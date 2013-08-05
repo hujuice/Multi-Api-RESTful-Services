@@ -30,20 +30,29 @@
                     beforeSend: function(jqXHR) {
                         jqXHR.setRequestHeader('Accept', accept);
                     },
-                    error: function(jqXHR) {
-                        form$.siblings('.status').addClass('error').text(jqXHR.status + ' ' + jqXHR.statusText);
-                        form$.siblings('.message').text(jqXHR.responseText);
+                    error: function(jqXHR, textStatus, errorThrown) {
+                        if ('200' == jqXHR.status) { // Not an HTTP error, maybe a JQuery error?
+                            form$.siblings('.status').removeClass('error').text(jqXHR.status + ' ' + jqXHR.statusText);
+                            console.log('JQuery error status: ' + textStatus);
+                            console.log('JQuery error thrown: ' + errorThrown);
+                            //form$.siblings('.message').text('JQuery reported errors, see the console to read more.');
+                        } else {
+                            form$.siblings('.status').addClass('error').text(jqXHR.status + ' ' + jqXHR.statusText);
+                            //form$.siblings('.message').text(jqXHR.responseText);
+                        }
                     },
                     success: function(data, textStatus, jqXHR) {
-                        form$.siblings('.status').text(jqXHR.status + ' ' + jqXHR.statusText);
+                        form$.siblings('.status').removeClass('error').text(jqXHR.status + ' ' + jqXHR.statusText);
+                        //form$.siblings('.message').text('');
                     },
                     complete: function(jqXHR) {
                         output  = "Request url\n===========\n" + url + "\n\n";
                         output += "Request accept\n==============\n" + accept + "\n\n";
                         output += "Response headers\n================\n" + jqXHR.getAllResponseHeaders() + "\n\n";
                         output += "Response body\n=============\n" + jqXHR.responseText + "\n\n";
-                        form$.siblings('pre').text(output);
+                        form$.siblings('.dialog').text(output);
                     },
+                    jsonpCallback: 'parseResponse',
                     timeout: 3000,
                     type: 'GET',
                     url: url
