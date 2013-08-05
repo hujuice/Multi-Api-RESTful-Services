@@ -65,6 +65,35 @@ class Html
         else
             return new response($info, $html);
     }
+    
+    /**
+     * Give a text intro
+     */
+    public static function intro()
+    {
+        $body = '<div class="intro">
+<p>This automatically generated website offers descriptions, discovery service - for both human and machines - and sandboxes for the webservices supplied by this system.<br />
+    It responds in this human oriented way for every <span class="console">Accept: text/html</span> http header (e.g.: your browser) or other unsupported content types. It responds as requested for the supported content types.<br />
+    Supported content types are:</p>
+<dl>
+<dt><strong>JSON</strong></dt><dd><span class="console">application/json</span></dd>
+<dt><strong>JSONp</strong></dt><dd><span class="console">text/javascript</span></dd>
+<dt><strong>XML</strong>, <a href="http://it1.php.net/manual/en/intro.wddx.php">WDDX</a></dt><dd><span class="console">application/xml</span></dd>
+<dt><strong>TEXT</strong>, useful for debugging</dt><dd><span class="console">text/plain</span></dd>
+<dt><strong>HTML</strong>, discovery, documentation and sandbox tools</dt><dd><span class="console">text/html</span></dd>
+</dl>
+<p>You can request a specific supported content type by:</p>
+<ol>
+<li>the <span class="console">Accept:</span> HTTP header;</li>
+<li>adding a <span class="console">type=value</span> query string parameter, where values should be <span class="console">json</span>, <span class="console">jsonp</span>, <span class="console">xml</span>, <span class="console">txt</span> or <span class="console">html</span>;</li>
+<li>adding an "extension" to the requested method; e.g., if you want that the <span class="console">members/getplanets</span> will output in XML, you can ask for <span class="console">members/getplanets<strong>.xml</strong>?yourquerystring</span>.</li>
+</ol>
+<p>The preferred way, in the HTTP paradigma, is the <span class="console">Accept:</span> way. There\'s a lot of useful borowser plugins to easly manage the <span class="console">Accept</span> header during consuming development. A good choice is <em><a href="http://www.garethhunt.com/modifyheaders/">Modify Headers</a></em> for <a href="http://www.mozilla.org/firefox">Firefox</a>.</p>
+<p>Beside this, the <em>discovery</em> services help both human and machines to explore the services signature and behaviour.</p>
+</div>';
+        
+        return $body;
+    }
 
     /**
      * Avoid object instances

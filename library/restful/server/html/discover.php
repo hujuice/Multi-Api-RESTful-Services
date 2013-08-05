@@ -52,13 +52,35 @@ class Discover implements htmlInterface
      * @var string
      */
     protected $_base;
+    
+    /**
+     * Give a sandbox for a method
+     * @return string
+     */
+    protected function _sandbox($method, $base = '')
+    {
+        $body  = '<h5>Try yourself</h5>';
+        $body .= '<div class="sandbox"><form method="get">';
+        $body .= '<label class="qs">' . $base . htmlspecialchars($method) . '?</label>';
+        $body .= '<input type="text" class="qs" /><br />';
+        $body .= '<label class="accept">Accept: </label>';
+        $body .= '<select class="accept">';
+        foreach (\Restful\Server\Response::$contentTypes as $label => $content_type)
+            $body .= '<option value="' . htmlspecialchars($label) . '">' . htmlspecialchars($content_type) . '</option>';
+        $body .= '</select><br />';
+        $body .= '<input type="submit" value="Go" />';
+        $body .= '</form><pre class="status"></pre><pre class="message"></pre><pre class="dialog"></pre></div>';
+        $body .= '</div>';
+        
+        return $body;
+    }
 
     /**
      * Format the params' list
      * @param array $params
      * @return string
      */
-    protected function _params($params)
+    protected function _params($params, $base = '')
     {
         $body = '<h5>Parameters</h5>';
         if ($params)
@@ -77,6 +99,18 @@ class Discover implements htmlInterface
         }
         else
             $body .= '<p class="small">No params</p>';
+            
+        $body .= '<h5>Try yourself</h5>';
+        $body .= '<div class="sandbox"><form method="get">';
+        $body .= '<label class="qs">' . $base . '?</label>';
+        $body .= '<input type="text" class="qs" /><br />';
+        $body .= '<label class="accept">Accept: </label>';
+        $body .= '<select class="accept">';
+        foreach (\Restful\Server\Response::$contentTypes as $label => $content_type)
+            $body .= '<option value="' . htmlspecialchars($label) . '">' . htmlspecialchars($content_type) . '</option>';
+        $body .= '</select><br />';
+        $body .= '<input type="submit" value="Go" />';
+        $body .= '</form><pre class="status"></pre><pre class="message"></pre><pre class="dialog"></pre></div>';
 
         return $body;
     }
@@ -98,19 +132,8 @@ class Discover implements htmlInterface
                 $body .= '<div style="display: none">';
                 $body .= '<h5>Description</h5><p class="small">' . $method['purpose'] . '</p>';
                 $body .= '<h5>Base url</h5><p class="small">' . $base . htmlspecialchars($name) . '</p>';
-                $body .= $this->_params($method['params']);
+                $body .= $this->_params($method['params'], $base . htmlspecialchars($name));
                 $body .= '<h5>Discover</h5><p class="small"><a href="' . htmlspecialchars($method['discover']) . '">' . htmlspecialchars($method['discover']) . ' </a></p>';
-                $body .= '<h5>Try yourself</h5>';
-                $body .= '<div class="sandbox"><form method="get">';
-                $body .= '<label class="qs">' . $base . htmlspecialchars($name) . '?</label>';
-                $body .= '<input type="text" class="qs" /><br />';
-                $body .= '<label class="accept">Accept: </label>';
-                $body .= '<select class="accept">';
-                foreach (\Restful\Server\Response::$contentTypes as $label => $content_type)
-                    $body .= '<option value="' . htmlspecialchars($label) . '">' . htmlspecialchars($content_type) . '</option>';
-                $body .= '</select><br />';
-                $body .= '<input type="submit" value="Go" />';
-                $body .= '</form><pre class="status"></pre><pre class="message"></pre><pre class="dialog"></pre></div>';
                 $body .= '</div>';
                 $body .= '</div>';
             }
@@ -192,7 +215,10 @@ class Discover implements htmlInterface
                 $body .= '<h3>All methods</h3>';
         }
         else
+        {
+            $body = Html::intro() . $body; // Prepend!
             $body .= '<h3>All resources</h3>';
+        }
         $body .= '<h3>Url: <a href="' . $url . '">' . $url . '</a></h3>';
         $body .= '</div>';
         $body .= '<div class="discovery">';
@@ -201,7 +227,7 @@ class Discover implements htmlInterface
         else if (isset($this->_info['data']['methods']))
             $body .= $this->_methods($this->_info['data']['methods'], $this->_base . $this->_info['data']['resource'] . '/');
         else if (isset($this->_info['data']['params']))
-            $body .= $this->_params($this->_info['data']['params']);
+            $body .= $this->_params($this->_info['data']['params'], $this->_base . $this->_info['data']['resource'] . '/' . $this->_info['data']['method']);
         $body .= '</div>';
 
         return preg_replace('/<!-- \{dynamic\} -->/', $body, $this->_html);

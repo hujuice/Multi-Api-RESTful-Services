@@ -116,8 +116,8 @@ class Response implements htmlInterface
      */
     public function get()
     {
-        $body = $this->_data2html($this->_info['data']);
-
+        $body = '';
+        
         if (!empty($this->_info['debug'])) // Dump debug info
         {
             $body .= '<div style="background-color: #eee; padding: 0.5em">';
@@ -139,6 +139,8 @@ class Response implements htmlInterface
 
             $body .= '</div>';
         }
+
+        $body .= $this->_data2html($this->_info['data']);
 
         return preg_replace('/<!-- \{dynamic\} -->/', $body, str_replace("\n", '', $this->_html));
     }
