@@ -67,25 +67,19 @@ class Resource
         $text = array();
         foreach (explode("\n", $comment) as $row)
         {
-            $row = preg_replace('/^\s*\*\s*/', '', $row);
-
-            if (preg_match('/^(\w.*)\s*$/', $row, $matches))
-                $text[] = $matches[1];
-            else if (!$row)
+            if ($row = preg_replace('/^\s*\*\s*/', '', $row))
+            {
+                if (preg_match('/^(\w.*)\s*$/', $row, $matches))
+                    $text[] = $matches[1];
+                else if (preg_match('/^@param\s([\w|]+)\s\$(\w+)\s*(.*)$/', $row, $matches))
+                    $fields['params'][$matches[2]] = array('desc' => $matches[3], 'type' => $matches[1]);
+                else if (preg_match('/^@return\s([\w|]+)\s*(.*)$/', $row, $matches))
+                    $fields['return'] = array('desc' => $matches[2], 'type' => $matches[1]);
+            }
+            else
                 $text[] = '';
-            else if (preg_match('/^@param\s([\w|]+)\s\$(\w+)\s*(.*)$/', $row, $matches))
-                $fields['params'][$matches[2]] = array('desc' => $matches[3], 'type' => $matches[1]);
-            else if (preg_match('/^@return\s([\w|]+)\s*(.*)$/', $row, $matches))
-                $fields['return'] = array('desc' => $matches[2], 'type' => $matches[1]);
         }
-
-        // Split text in desc and purpose (shortDesc and longDesc)
-if (false && false !== strpos($text[0], 'Filtered posts lists'))
-{
-header('Content-Type: text/plain');
-var_dump($text);
-exit;
-}
+        
         $field = 'desc';
         foreach ($text as $text_row)
         {
@@ -131,6 +125,11 @@ exit;
             {
                 $params[$name]['desc'] = $comment['params'][$name]['desc'];
                 $params[$name]['type'] = $comment['params'][$name]['type'];
+            }
+            else
+            {
+                $params[$name]['desc'] = '';
+                $params[$name]['type'] = 'unknown';
             }
 
             $params[$name]['is_optional'] = $param->isOptional();

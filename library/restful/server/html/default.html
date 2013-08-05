@@ -5,54 +5,113 @@
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="description" content="Multi-API Restful Services - Server" />
 <style type="text/css">
+body        { font: 12pt/14pt sans-serif }
+h1          { margin: 0; padding: 1em; background-color: #437 }
+h1 a        { color: #fff; text-decoration: none }
 h2          { margin: 0.5em; padding: 0 }
 h3          { margin-top: 0 }
 h4, h5, h6  { margin: 0; padding: 0 }
 tt          { background-color: #eee }
-.info       { margin: 1em; padding: 0.5em; width: 46%; background-color: #eee; border: 1px solid #333; border-radius: 4px }
-.info h3    { margin: 0 }
-.mars,
-.sandbox,
-.intro      { margin: 1em; padding: 0; width: 46% }
-.mars       { float: left }
-.mars div > div:first-child,
-.mars h4 + p,
-.mars h5 + p,
-.mars h6 + p,
-.mars h6 + pre
-            { margin: 0 0 1em 0; padding: 0.2em; background-color: #eee; border: 1px solid #333; border-radius: 4px }
-.mars div > div:first-child
-            { cursor: pointer; margin-bottom: 0.5em; background-color: #cfc }
-.mars div > div:first-child:hover
-            { background-color: #9f9 }
-.small      { font-size: 80% }
-.tool       { margin: 0; text-align: right; padding-right: 1em }
-.tool a:after
-            { content: ' ⚙' }
-.intro      { float: right; margin: 0; padding: 0 }
-.intro p,
-.intro dl   { margin: 0 }
-.intro dt   { float: left; margin-right: 1em }
+.console    { font-family: monospace; background-color: #eee }
+.small      { font-size: 90% }
+
+.intro, .info
+            { margin: 1em; padding: 0; border: 1px solid #333; border-radius: 8px }
+         
+
+.intro > *
+            { margin: 0; padding: 0.5em }
+.intro dt
+            { float: left; margin-right: 1em }
 .intro dt:before
             { content: '➔ ' }
 .intro dt:after
             { content: ': ' }
-.sandbox    { float: right }
+.intro ol   { list-style-position: inside }
+.control    { float: right; margin: 0; padding: 0.5em; background-color: #fff; border-width: 0 0 1px 1px; border-style: solid; border-color: #ccc; border-radius: 0 8px 0 0; width: 1em; text-align: center; cursor: pointer }
+.collapsed  { height: 3em; overflow: hidden; color: #999;
+              background: linear-gradient(100% 100% 90deg, #eee, #fff);
+              background: -moz-linear-gradient(100% 100% 90deg, #eee, #fff);
+              background: -webkit-gradient(linear, center bottom, center top, from(#eee), to(#fff)) }
+              
+.info       { padding: 0.5em; background-color: #eee }
+.info h3    { margin: 0 }
+
+.discovery  { margin: 1em; padding: 0 }
+.discovery h3
+            { margin: 1em 0; padding: 0 }
+.discovery div > div:first-child,
+.discovery h4 + p,
+.discovery h5 + p,
+.discovery h6 + p,
+.discovery h6 + pre,
+.discovery div.sandbox
+            { margin: 0 0 1em 0; padding: 0.5em; background-color: #eee; border: 1px solid #333; border-radius: 8px }
+.discovery div > div:first-child
+            { cursor: pointer; margin-bottom: 0.5em; background-color: #cfc }
+.discovery div > div:first-child:hover
+            { background-color: #9f9 }
+            
+legend      { float: left }
+input[type=text]
+            { width: 70% }
+/*
+
+
+
+
+
+
+.sandbox    { display: none }
+
+
+.tool       { margin: 0; text-align: right; padding-right: 1em }
+.tool a:after
+            { content: ' ⚙' }
+
+.sandbox div
+            { display: none }
 .sandbox fieldset
             { border-radius: 4px }
 .sandbox legend
             { font-weight: bold }
+.sandbox select
+            { position: absolute; left: 64% }
 .sandbox input
-            { width: 95% }
+            { width: 50% }
+.sandbox input.incomplete
+            { background-color: #fcc }
 .sandbox .request,
 .sandbox .accept,
 .sandbox .headers,
 .sandbox .body
             { background-color: #eee; padding: 1em; border-radius: 8px }
+*/
 </style>
 </head>
 <body style="margin: 0">
-<h1 style="margin: 0; padding: 1em; background-color: #437"><a href="/" style="color: #fff; text-decoration: none">Multi-API Restful Services</a></h1>
+<h1><a href="/">Multi-API Restful Services</a></h1>
+<h2>Discovery service for <a href=""></a></h2>
+<div class="intro">
+<p>This automatically generated website offers descriptions, discovery service - for both human and machines - and sandboxes for the webservices supplied by this system.<br />
+    It responds in this human oriented way for every <span class="console">Accept: text/html</span> http header (e.g.: your browser) or other unsupported content types. It responds as requested for the supported content types.<br />
+    Supported content types are:</p>
+<dl>
+<dt><strong>JSON</strong></dt><dd><span class="console">application/json</span></dd>
+<dt><strong>JSONp</strong></dt><dd><span class="console">text/javascript</span></dd>
+<dt><strong>XML</strong>, <a href="http://it1.php.net/manual/en/intro.wddx.php">WDDX</a></dt><dd><span class="console">application/xml</span></dd>
+<dt><strong>TEXT</strong>, useful for debugging</dt><dd><span class="console">text/plain</span></dd>
+<dt><strong>HTML</strong>, discovery, documentation and sandbox tools</dt><dd><span class="console">text/html</span></dd>
+</dl>
+<p>You can request a specific supported content type by:</p>
+<ol>
+<li>the <span class="console">Accept:</span> HTTP header;</li>
+<li>adding a <span class="console">type=value</span> query string parameter, where values should be <span class="console">json</span>, <span class="console">jsonp</span>, <span class="console">xml</span>, <span class="console">txt</span> or <span class="console">html</span>;</li>
+<li>adding an "extension" to the requested method; e.g., if you want that the <span class="console">members/getplanets</span> will output in XML, you can ask for <span class="console">members/getplanets<strong>.xml</strong>?yourquerystring</span>.</li>
+</ol>
+<p>The preferred way, in the HTTP paradigma, is the <span class="console">Accept:</span> way. There\'s a lot of useful borowser plugins to easly manage the <span class="console">Accept</span> header during consuming development. A good choice is <em><a href="http://www.garethhunt.com/modifyheaders/">Modify Headers</a></em> for <a href="http://www.mozilla.org/firefox">Firefox</a>.</p>
+<p>Beside this, the <em>discovery</em> services help both human and machines to explore the services signature and behaviour.</p>
+</div>
 <!-- {dynamic} -->
 </body>
 </html>

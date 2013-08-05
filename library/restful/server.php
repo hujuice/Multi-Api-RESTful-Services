@@ -56,6 +56,12 @@ class Server
      * @var Server\Request
      */
     protected $_request;
+    
+    /**
+     * Routing
+     * @var Server\Router
+     */
+    protected $_router;
 
     /**
      * Calculate an etag, based on content type and data array
@@ -260,6 +266,7 @@ Try to navigate http://' . $_SERVER['SERVER_NAME'] . '/' . $this->_config['baseU
                         'request'   => $request,
                         'route'     => $this->_router->getRouteParams(),
                         'resource'  => $this->_router->getRouteParams('resource'),
+                        'resources' => $this->_resources, // ???
                         'status'    => $status,
                         'data'      => $data,
                         'cache'     => array(

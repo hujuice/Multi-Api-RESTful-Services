@@ -59,7 +59,7 @@ class Html
         // Make a decision
         $resource = $info['resource'];
         unset($info['resource']);
-
+        
         if ('discover' == $resource)
             return new discover($info, $html);
         else
@@ -69,5 +69,8 @@ class Html
     /**
      * Avoid object instances
      */
-    private function __construct() {}
+    private function __construct()
+    {
+        /* Simply avoid direct creation and do nothing */
+    }
 }
