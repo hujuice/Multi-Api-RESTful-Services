@@ -57,6 +57,25 @@ class Router
                             'params'        => null,
                             'contentType'   => null,
                             );
+                            
+    /**
+     * Prepend another content-type
+     * @param string $mime
+     * @return boolean
+     */
+    protected function _addContentType($mime, & $content_types)
+    {
+        if(isset(Response::$contentTypes[$mime]))
+        {
+            // Check if already in the array
+            if (($key = array_search(Response::$contentTypes[$mime], $content_types)) !== false)
+                unset($content_types[$key]);
+            array_unshift($content_types, Response::$contentTypes[$mime]);
+            return true;
+        }
+        else
+            return false;
+    }
 
     /**
      * Acquire the base URL
@@ -153,9 +172,17 @@ class Router
 
                 // Check for extension
                 $method = explode('.', $parts[1], 2);
+                if (isset($method[1]))
+                    $this->_addContentType($method[1], $content_types);
+                /*
                 if (isset($method[1]) && isset(Response::$contentTypes[$method[1]]))
-                    $this->_params['contentType'] = Response::$contentTypes[$method[1]];
-
+                {
+                    // Check if already in the array
+                    if (($key = array_search(Response::$contentTypes[$method[1]], $content_types)) !== false)
+                        unset($content_types[$key]);
+                    array_unshift($content_types, Response::$contentTypes[$method[1]]);
+                }
+                */
                 $method = $method[0];
 
                 if ($this->_params['method'] = $this->_resources[$this->_params['resource']]->checkMethod($method))
@@ -165,6 +192,10 @@ class Router
                         $data = $request->query;
                     else
                         $data = $request->data;
+                        
+                    // Check for restful_format
+                    if (isset($data['content_type']) && $this->_addContentType($data['content_type'], $content_types))
+                        unset($data['content_type']);
 
                     // Check if it is a (valid) JSONp request
                     if (!empty($data['jsonp']) && in_array(Response::$contentTypes['js'], $content_types))

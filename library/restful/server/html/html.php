@@ -85,7 +85,7 @@ class Html
 <p>You can request a specific supported content type by:</p>
 <ol>
 <li>the <span class="console">Accept:</span> HTTP header;</li>
-<li>adding a <span class="console">type=value</span> query string parameter, where values should be <span class="console">json</span>, <span class="console">jsonp</span>, <span class="console">xml</span>, <span class="console">txt</span> or <span class="console">html</span>;</li>
+<li>adding a <span class="console">content_type=value</span> query string parameter, where values should be <span class="console">json</span>, <span class="console">js</span>, <span class="console">xml</span>, <span class="console">txt</span> or <span class="console">html</span>;</li>
 <li>adding an "extension" to the requested method; e.g., if you want that the <span class="console">members/getplanets</span> will output in XML, you can ask for <span class="console">members/getplanets<strong>.xml</strong>?yourquerystring</span>.</li>
 </ol>
 <p>The preferred way, in the HTTP paradigma, is the <span class="console">Accept:</span> way. There\'s a lot of useful borowser plugins to easly manage the <span class="console">Accept</span> header during consuming development. A good choice is <em><a href="http://www.garethhunt.com/modifyheaders/">Modify Headers</a></em> for <a href="http://www.mozilla.org/firefox">Firefox</a>.</p>
