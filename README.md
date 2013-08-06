@@ -37,10 +37,11 @@ supported. However, each class is bound to a single method. This limitation is
 to avoid a extra configuration for each class function.
 
 The framework is able to output 4 'Content-Type:'s:
-- JSON;
-- XML (in the WDDX format, see http://en.wikipedia.org/wiki/WDDX);
-- HTML (oriented to human understanding and debugging);
-- TXT (simply a print_r dump of the output).
+- JSON (application/json);
+- JSONp (text/javascript)
+- XML (application/xml, in the WDDX format, see http://en.wikipedia.org/wiki/WDDX);
+- HTML (text/html, oriented to human understanding and debugging);
+- TXT (text/plain, simply a print_r dump of the output).
 
 The 'Content-Type' selection is managed via the 'Accept:' header of the request
 or via a virtual "extension" applied to the method name. The latter will
