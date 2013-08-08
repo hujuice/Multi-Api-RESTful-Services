@@ -145,7 +145,13 @@ class Request
         $this->data = array();
         if (!empty($_SERVER['CONTENT_TYPE']))
         {
-            switch($_SERVER['CONTENT_TYPE'])
+            // Cut away character encoding
+            if (($pos = stripos($_SERVER['CONTENT_TYPE'], ';')) === false)
+                $content_type = $_SERVER['CONTENT_TYPE'];
+            else
+                $content_type = substr($_SERVER['CONTENT_TYPE'], 0, $pos);
+                
+            switch($content_type)
             {
                 case 'application/x-www-form-urlencoded':
                     $this->data = $_POST;
@@ -182,7 +188,7 @@ class Request
                     $this->data = (array) simplexml_load_file('php://input');
                     break;
                 default:
-                    throw new \Exception('Unsupported request Content-Type.', 415);
+                    throw new \Exception('Unsupported request Content-Type (' . $_SERVER['CONTENT_TYPE'] . ').', 415);
             }
         }
 

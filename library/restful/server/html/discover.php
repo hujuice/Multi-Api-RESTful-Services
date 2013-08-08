@@ -52,35 +52,13 @@ class Discover implements htmlInterface
      * @var string
      */
     protected $_base;
-    
-    /**
-     * Give a sandbox for a method
-     * @return string
-     */
-    protected function _sandbox($method, $base = '')
-    {
-        $body  = '<h5>Try yourself</h5>';
-        $body .= '<div class="sandbox"><form method="get">';
-        $body .= '<label class="qs">' . $base . htmlspecialchars($method) . '?</label>';
-        $body .= '<input type="text" class="qs" /><br />';
-        $body .= '<label class="accept">Accept: </label>';
-        $body .= '<select class="accept">';
-        foreach (\Restful\Server\Response::$contentTypes as $label => $content_type)
-            $body .= '<option value="' . htmlspecialchars($label) . '">' . htmlspecialchars($content_type) . '</option>';
-        $body .= '</select><br />';
-        $body .= '<input type="submit" value="Go" />';
-        $body .= '</form><pre class="status"></pre><pre class="message"></pre><pre class="dialog"></pre></div>';
-        $body .= '</div>';
-        
-        return $body;
-    }
 
     /**
      * Format the params' list
      * @param array $params
      * @return string
      */
-    protected function _params($params, $base = '')
+    protected function _params($params, $base = '', $http = 'GET')
     {
         $body = '<h5>Parameters</h5>';
         if ($params)
@@ -102,8 +80,19 @@ class Discover implements htmlInterface
             
         $body .= '<h5>Try yourself</h5>';
         $body .= '<div class="sandbox"><form method="get">';
-        $body .= '<label class="qs">' . $base . '?</label>';
-        $body .= '<input type="text" class="qs" /><br />';
+        $body .= '<p>Method: <span class="http">' . $http . '</span></p>';
+        if ('POST' != $http)
+        {
+            $body .= '<label class="qs">' . $base . '?</label>';
+            $body .= '<input type="text" class="qs" /><br />';
+        }
+        else
+            $body .= '<p class="qs">' . $base . '</p>';
+        if (('POST' == $http) || ('PUT' == $http))
+        {
+            $body .= '<label class="post">Post data</label>';
+            $body .= '<textarea class="post"></textarea><br />';
+        }
         $body .= '<label class="accept">Accept: </label>';
         $body .= '<select class="accept">';
         foreach (\Restful\Server\Response::$contentTypes as $label => $content_type)
@@ -120,7 +109,7 @@ class Discover implements htmlInterface
      * @param array $methods
      * @return string
      */
-    protected function _methods($methods, $base = '')
+    protected function _methods($methods, $base = '', $http = 'GET')
     {
         $body = '<h4>Available methods</h4>';
         if ($methods)
@@ -132,7 +121,7 @@ class Discover implements htmlInterface
                 $body .= '<div style="display: none">';
                 $body .= '<h5>Description</h5><p class="small">' . $method['purpose'] . '</p>';
                 $body .= '<h5>Base url</h5><p class="small">' . $base . htmlspecialchars($name) . '</p>';
-                $body .= $this->_params($method['params'], $base . htmlspecialchars($name));
+                $body .= $this->_params($method['params'], $base . htmlspecialchars($name), $http);
                 $body .= '<h5>Discover</h5><p class="small"><a href="' . htmlspecialchars($method['discover']) . '">' . htmlspecialchars($method['discover']) . ' </a></p>';
                 $body .= '</div>';
                 $body .= '</div>';
@@ -163,7 +152,7 @@ class Discover implements htmlInterface
                 $body .= '<h4>Base url</h4><p class="small">' . $base . htmlspecialchars($name) . '</p>';
                 $body .= '<h4>HTTP method</h4><p class="small">' . $resource['HTTP'] . '</p>';
                 $body .= '<h4>Discover</h4><p class="small"><a href="' . htmlspecialchars($resource['discover']) . '">' . htmlspecialchars($resource['discover']) . ' </a></p>';
-                $body .= $this->_methods($resource['methods'], $base . $name . '/');
+                $body .= $this->_methods($resource['methods'], $base . $name . '/', $resource['HTTP']);
                 $body .= '</div>';
                 $body .= '</div>';
             }

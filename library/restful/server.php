@@ -202,8 +202,32 @@ class Server
         if ($this->_router->route($request))
         {
             // Success!
-            $status = 200;
+            
+            // Data
             $data = $this->_resources[$this->_router->getRouteParams('resource')]->exec($this->_router->getRouteParams('method'), $this->_router->getRouteParams('params'));
+            
+            // Status
+            // http://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html
+            switch ($request->method)
+            {
+                case 'GET':
+                    $status = 200;
+                    break;
+                case 'POST':
+                    $data ? $status = 200
+                          : $status = 204;
+                    break;
+                case 'PUT':
+                    $data ? $status = 200
+                          : $status = 204;
+                    break;
+                case 'DELETE':
+                    $data ? $status = 200
+                          : $status = 204;
+                    break;
+                default:
+                    $status = 500;
+            }
 
             // Try to guess a $last_modified value and format
             if (isset($data['lastModified']))

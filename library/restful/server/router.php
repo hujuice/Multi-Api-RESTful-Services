@@ -148,7 +148,7 @@ class Router
             if (!isset($this->_resources[$parts[0]]))
                 throw new \Exception('Invalid resource ' . $parts[0] . '.');
             if ($request->method != $this->_resources[$parts[0]]->httpMethod())
-                throw new \Exception('Invalid HTTP method for this resource.');
+                throw new \Exception('Invalid HTTP method for this resource. (Request:' . $request->method . ', Resource: ' . $this->_resources[$parts[0]]->httpMethod() . ')');
 
             // Route
             $resource = $parts[0];

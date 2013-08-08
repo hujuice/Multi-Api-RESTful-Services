@@ -210,10 +210,15 @@ class Resource
         else
             $this->_config['httpMethod'] = 'GET';
 
-        if ($max_age >= 0)
-            $this->_config['maxAge'] = (integer) $max_age;
+        if ($this->_config['httpMethod'] == 'GET')
+        {
+            if ($max_age >= 0)
+                $this->_config['maxAge'] = (integer) $max_age;
+            else
+                throw new \Exception('\'max-age\' MUST be a non-negative integer.');
+        }
         else
-            throw new \Exception('\'max-age\' MUST be a non-negative integer.');
+            $this->_config['maxAge'] = 0;
 
         $this->_config['construct'] = (array) $construct;
 
