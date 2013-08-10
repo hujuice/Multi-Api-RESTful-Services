@@ -227,16 +227,9 @@ class Resource
         // Constructor
         if ($this->_reflection->hasMethod('__construct'))
         {
-            try
-            {
-                $params = $this->_methodParams('__construct');
-                if (!is_array($this->_config['construct'] = $this->_mapParams($params, $this->_config['construct'])))
-                    throw new \Exception('Invalid constructor arguments.');
-            }
-            catch (Exception $e)
-            {
-                throw $e;
-            }
+            $params = $this->_methodParams('__construct');
+            if (!is_array($this->_config['construct'] = $this->_mapParams($params, $this->_config['construct'])))
+                throw new \Exception('Invalid constructor arguments: ' . json_encode($this->_config['construct']) . '.');
         }
     }
 
@@ -338,19 +331,12 @@ class Resource
      */
     public function checkParams($method, array $params)
     {
-        try
-        {
-            $params = $this->_key2lower($params);
-            $methodParams = $this->getParams($method);
+        $params = $this->_key2lower($params);
+        $methodParams = $this->getParams($method);
 
-            $params = $this->_mapParams($methodParams, $params);
-            if (is_array($params))
-                return $params;
-        }
-        catch (Exception $e)
-        {
-            throw new \Exception('Unable to find the \'' . $method . '\' method.', 500, $e);
-        }
+        $params = $this->_mapParams($methodParams, $params);
+        if (is_array($params))
+            return $params;
     }
 
     /**
@@ -369,14 +355,7 @@ class Resource
         if (!is_array($params = $this->checkParams($method, $params)))
             throw new \Exception('Incomplete or bad parameter structure.');
 
-        try
-        {
-            $model = $this->_reflection->newInstanceArgs($this->_config['construct']);
-            return $this->_reflection->getMethod($method)->invokeArgs($model, $params);
-        }
-        catch (\Exception $e)
-        {
-            throw new \Exception('Resource error.', 500, $e);
-        }
+        $model = $this->_reflection->newInstanceArgs($this->_config['construct']);
+        return $this->_reflection->getMethod($method)->invokeArgs($model, $params);
     }
 }

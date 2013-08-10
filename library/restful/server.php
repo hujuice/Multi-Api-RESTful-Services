@@ -108,7 +108,7 @@ class Server
             return false; // Back to ordinary errors
         else
         {
-            Server\Response::raw(500, 'Something went wrong in the framework.' . "\n" . $errstr, 'text/plain', 0, null, array());
+            Server\Response::raw(500, 'Something went wrong in the framework.' . "\n" . $errstr, 'text/plain', 0, null, null, array());
             exit;
         }
     }
@@ -134,10 +134,10 @@ class Server
                     "\n" . 'Stack trace:' . "\n" . $exception->getTraceAsString() . "\n" .
                     $this->_digException($exception);
 
-            Server\Response::raw($code, $body, 'text/plain', 0, null, '', array());
+            Server\Response::raw($code, $body, 'text/plain', 0, null, null, array());
         }
         else
-            Server\Response::raw($code, 'Something went wrong in the framework.' . "\n" . $exception->getMessage(), 'text/plain', 0, null, array());
+            Server\Response::raw($code, $exception->getMessage(), 'text/plain', 0, null, null, array());
 
         exit;
     }
