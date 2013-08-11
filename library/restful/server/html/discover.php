@@ -83,21 +83,28 @@ class Discover implements htmlInterface
         $body .= '<p>Method: <span class="http">' . $http . '</span></p>';
         if ('POST' != $http)
         {
+            $body .= '<div>';
             $body .= '<label class="qs">' . $base . '?</label>';
-            $body .= '<input type="text" class="qs" /><br />';
+            $body .= '<input type="text" class="qs" />';
+            $body .= '</div>';
         }
         else
             $body .= '<p class="qs">' . $base . '</p>';
         if (('POST' == $http) || ('PUT' == $http))
         {
-            $body .= '<label class="post">Post data</label>';
-            $body .= '<textarea class="post"></textarea><br />';
+            $body .= '<div>';
+            $body .= '<label class="post" style="float: left">Post data: </label>';
+            $body .= '<textarea class="post" style="float: left"></textarea>';
+            $body .= '<p class="small">Hint: if you have complex data, try a json structure.<br />E.g. { param1: "value1"; param2: "value2" }</p>';
+            $body .= '</div>';
         }
-        $body .= '<label class="accept">Accept: </label>';
+        $body .= '<div style="clear: both">';
+        $body .= '<label class="accept" style="clear: both">Accept: </label>';
         $body .= '<select class="accept">';
         foreach (\Restful\Server\Response::$contentTypes as $label => $content_type)
             $body .= '<option value="' . htmlspecialchars($label) . '">' . htmlspecialchars($content_type) . '</option>';
-        $body .= '</select><br />';
+        $body .= '</select>';
+        $body .= '</div>';
         $body .= '<input type="submit" value="Go" />';
         $body .= '</form><pre class="status"></pre><pre class="message"></pre><pre class="dialog"></pre></div>';
 

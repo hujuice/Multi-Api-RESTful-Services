@@ -23,14 +23,14 @@
             
             $('.sandbox input[type=submit]').click(function() {
                 var form$ = $(this).parent();
-                var url = form$.children('.qs').text();
-                if (undefined != form$.children('input.qs').val())
-                    url += form$.children('input.qs').val();
-                var accept = form$.children('select').children('option').filter(':selected').text();
+                var url = form$.find('.qs').text();
+                if (undefined != form$.find('input.qs').val())
+                    url += form$.find('input.qs').val();
+                var accept = form$.find('select').children('option').filter(':selected').text();
                 var type = form$.children('p').children('.http').text();
                 var data = '';
-                if (undefined != form$.children('textarea.post').val())
-                    data = form$.children('textarea.post').val();
+                if (undefined != form$.find('textarea.post').val())
+                    data = form$.find('textarea.post').val();
                 $.ajax({
                     url: url,
                     type: type,
