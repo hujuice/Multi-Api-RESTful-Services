@@ -127,8 +127,8 @@ class Discover implements htmlInterface
                 $body .= '<div><strong>' . htmlspecialchars($name) . '</strong><br /><span class="small">' . htmlspecialchars($method['desc']) . '</span></div>';
                 $body .= '<div style="display: none">';
                 $body .= '<h5>Description</h5><p class="small">' . $method['purpose'] . '</p>';
-                $body .= '<h5>Base url</h5><p class="small">' . $base . htmlspecialchars($name) . '</p>';
-                $body .= $this->_params($method['params'], $base . htmlspecialchars($name), $http);
+                $body .= '<h5>Base url</h5><p class="small">' . $base . '/' . htmlspecialchars($name) . '</p>';
+                $body .= $this->_params($method['params'], $base . '/' . htmlspecialchars($name), $http);
                 $body .= '<h5>Discover</h5><p class="small"><a href="' . htmlspecialchars($method['discover']) . '">' . htmlspecialchars($method['discover']) . ' </a></p>';
                 $body .= '</div>';
                 $body .= '</div>';
@@ -156,10 +156,10 @@ class Discover implements htmlInterface
                 $body .= '<div><strong>' . htmlspecialchars($name) . '</strong><br /><span class="small">' . htmlspecialchars($resource['desc']) . '</span></div>';
                 $body .= '<div style="display: none">';
                 $body .= '<h4>Description</h4><p class="small">' . $resource['purpose'] . '</p>';
-                $body .= '<h4>Base url</h4><p class="small">' . $base . htmlspecialchars($name) . '</p>';
+                $body .= '<h4>Base url</h4><p class="small">' . $base . '/' . htmlspecialchars($name) . '</p>';
                 $body .= '<h4>HTTP method</h4><p class="small">' . $resource['HTTP'] . '</p>';
                 $body .= '<h4>Discover</h4><p class="small"><a href="' . htmlspecialchars($resource['discover']) . '">' . htmlspecialchars($resource['discover']) . ' </a></p>';
-                $body .= $this->_methods($resource['methods'], $base . $name . '/', $resource['HTTP']);
+                $body .= $this->_methods($resource['methods'], $base . '/' . $name, $resource['HTTP']);
                 $body .= '</div>';
                 $body .= '</div>';
             }
@@ -178,14 +178,15 @@ class Discover implements htmlInterface
      */
     public function __construct($info, $html)
     {
-        // JavaScript
-        if (strpos($html, '</head>') === false)
-            throw new Exception('Invalid HTML template. Please validate it with http://validator.w3.org/');
-        $html = str_replace('</head>', '<script type="text/javascript" src="/ui/get"></script>' . PHP_EOL . '</head>', $html);
-
         $this->_info = (array) $info;
         $this->_html = (string) $html;
         $this->_base = 'http://' . $this->_info['data']['host'] . $this->_info['data']['baseUrl'];
+        
+        // JavaScript
+        if (strpos($this->_html, '</head>') === false)
+            throw new Exception('Invalid HTML template. Please validate it with http://validator.w3.org/');
+        $this->_html = str_replace('</head>', '<script type="text/javascript" src="' . $this->_base . '/ui/get"></script>' . PHP_EOL . '</head>', $this->_html);
+
     }
 
     /**
@@ -194,7 +195,7 @@ class Discover implements htmlInterface
      */
     public function get()
     {
-        $url = $this->_base;
+        $url = $this->_base . '/';
         $body = '<div class="info">';
         if (isset($this->_info['data']['resource']))
         {
@@ -221,9 +222,9 @@ class Discover implements htmlInterface
         if (isset($this->_info['data']['resources']))
             $body .= $this->_resources($this->_info['data']['resources'], $this->_base);
         else if (isset($this->_info['data']['methods']))
-            $body .= $this->_methods($this->_info['data']['methods'], $this->_base . $this->_info['data']['resource'] . '/');
+            $body .= $this->_methods($this->_info['data']['methods'], $this->_base . '/' . $this->_info['data']['resource']);
         else if (isset($this->_info['data']['params']))
-            $body .= $this->_params($this->_info['data']['params'], $this->_base . $this->_info['data']['resource'] . '/' . $this->_info['data']['method']);
+            $body .= $this->_params($this->_info['data']['params'], $this->_base . '/' . $this->_info['data']['resource'] . '/' . $this->_info['data']['method']);
         $body .= '</div>';
 
         return preg_replace('/<!-- \{dynamic\} -->/', $body, $this->_html);

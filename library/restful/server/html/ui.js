@@ -97,4 +97,4 @@
     } else {
         main();
     }
-})('http://services9.istat.it/');
+})();

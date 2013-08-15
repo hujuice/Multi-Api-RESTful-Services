@@ -40,14 +40,34 @@ class Ui
      * @var string
      */
     protected $_javascript = 'html/ui.js';
+    
+    /**
+     * Base Url
+     * @var string
+     */
+    protected $_baseUrl;
+    
+    /**
+     * Store the base Url
+     * @param string $baseUrl
+     * @return void
+     */
+    public function __construct($baseUrl = '')
+    {
+        $this->_baseUrl = $baseUrl;
+    }
 
     /**
      * Output javascript
      */
     public function get()
     {
+        $javascript = trim(file_get_contents($this->_javascript, true));
+        $javascript = preg_replace('/\)\(\);$/', ")('" . $this->_baseUrl . "');", $javascript);
         ob_start();
-        echo file_get_contents($this->_javascript, true);
+        echo $javascript;
+        
+        //echo file_get_contents($this->_javascript, true);
     }
 
     /**

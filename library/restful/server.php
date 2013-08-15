@@ -166,6 +166,20 @@ class Server
 
         // Server behaviour
         $this->_config = array_merge($this->_config, array_filter($config['server']));
+        
+        // Base url normalization
+        /*
+         * Base Url policy:
+         * URLs should always start with a trailing slash
+         * and never end with a trailing slash.
+         * Valid examples:
+         * '/a/b/c'
+         * '/'
+         * To allow this, the last character of base Url cannot be a slash
+         */
+        $this->_config['baseUrl'] = trim($this->_config['baseUrl'], '/ ');
+        if ($this->_config['baseUrl'])
+            $this->_config['baseUrl'] = '/' . $this->_config['baseUrl'];
 
         // User defined resources
         $this->_resources = array();
@@ -185,7 +199,7 @@ class Server
         $this->_resources['discover'] = new Server\Resource('Restful\Server\Discover', array('resources' => $this->_resources, 'baseUrl' => $this->_config['baseUrl']));
 
         // Add the JavaScript resource
-        $this->_resources['ui'] = new Server\Resource('Restful\Server\Ui');
+        $this->_resources['ui'] = new Server\Resource('Restful\Server\Ui', array('baseUrl' => $this->_config['baseUrl']));
 
         // Route
         $this->_router = new Server\Router($this->_resources, $this->_config['baseUrl']);
@@ -275,7 +289,7 @@ class Server
                     $message .= 'The requested Content-Type(s) is (are) not available.' . PHP_EOL;
             }
             $message .= PHP_EOL . 'You MUST specify a valid resource and method, with appropriate params.
-Try to navigate http://' . $_SERVER['SERVER_NAME'] . '/' . $this->_config['baseUrl'] . ' with your preferred browser to learn more.' . PHP_EOL;
+Try to navigate http://' . $_SERVER['SERVER_NAME'] . $this->_config['baseUrl'] . '/ with your preferred browser to learn more.' . PHP_EOL;
 
             $data = array($message);
             $last_modified = time();

@@ -67,7 +67,7 @@ class Discover
      */
     public function __construct(array $resources, $baseUrl = '')
     {
-        $this->_baseUrl = '/' . trim($baseUrl, '/');
+        $this->_baseUrl = $baseUrl;
         $this->_resources = $resources;
     }
 
@@ -85,7 +85,7 @@ class Discover
             $resources['resources'][$name]['HTTP'] = $resource->httpMethod();
             $methods = $this->methods($name);
             $resources['resources'][$name]['methods'] = $methods['methods'];
-            $resources['resources'][$name]['discover'] = 'http://' . $_SERVER['SERVER_NAME'] . $this->_baseUrl . 'discover/methods?resource=' . $name;
+            $resources['resources'][$name]['discover'] = 'http://' . $_SERVER['SERVER_NAME'] . $this->_baseUrl . '/discover/methods?resource=' . $name;
         }
 
         return $resources;
@@ -113,7 +113,7 @@ class Discover
                 $params = $this->params($resource, $method);
                 $methods['methods'][$method]['params'] = $params['params'];
                 $methods['methods'][$method]['return'] = $desc['return'];
-                $methods['methods'][$method]['discover'] = 'http://' . $_SERVER['SERVER_NAME'] . $this->_baseUrl . 'discover/params?resource=' . $resource . '&method=' . $method;
+                $methods['methods'][$method]['discover'] = 'http://' . $_SERVER['SERVER_NAME'] . $this->_baseUrl . '/discover/params?resource=' . $resource . '&method=' . $method;
             }
 
             return $methods;
