@@ -182,12 +182,14 @@ class Request
                         }
                     }
                     break;
+                /*
                 case 'application/json':
                     $this->data = json_decode(file_get_contents('php://input'), true);
                     break;
                 case 'application/xml':
                     $this->data = (array) simplexml_load_file('php://input');
                     break;
+                */
                 default:
                     throw new \Exception('Unsupported request Content-Type (' . $_SERVER['CONTENT_TYPE'] . ').', 415);
             }
