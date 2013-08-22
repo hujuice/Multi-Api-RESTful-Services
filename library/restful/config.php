@@ -89,9 +89,9 @@ class Config implements \Iterator
             // Redo for each key
             foreach ($config as & $value)
                 $value = $this->_expandKeys($value);
-                
-            return $config;
         }
+        
+        return $config;
     }
 
     /**
