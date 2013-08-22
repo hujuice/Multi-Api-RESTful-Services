@@ -234,7 +234,7 @@ class Response
                 break;
         }
 
-        // Simply validate!
+        // Simply validate if cached
         if (!$info['debug'] &&
             ((200 == $status) || (4 == $status[0])) &&
             ((strtotime($info['request']->ifModifiedSince) >= $info['cache']['lastModified']) || ($info['request']->ifMatch == $etag)))

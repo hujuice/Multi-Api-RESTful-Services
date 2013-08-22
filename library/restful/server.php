@@ -213,10 +213,8 @@ class Server
     {
         $request = new Server\Request();
 
-        if ($this->_router->route($request))
+        if ($this->_router->route($request)) // Success!
         {
-            // Success!
-            
             // Data
             $data = $this->_resources[$this->_router->getRouteParams('resource')]->exec($this->_router->getRouteParams('method'), $this->_router->getRouteParams('params'));
             
@@ -267,7 +265,7 @@ class Server
             else
                 $last_modified = time();
         }
-        else
+        else // Failed!
         {
             $message = '';
             if (!$this->_router->getRouteParams('resource'))
@@ -288,8 +286,21 @@ class Server
                 if (!$this->_router->getRouteParams('contentType'))
                     $message .= 'The requested Content-Type(s) is (are) not available.' . PHP_EOL;
             }
-            $message .= PHP_EOL . 'You MUST specify a valid resource and method, with appropriate params.
-Try to navigate http://' . $_SERVER['SERVER_NAME'] . $this->_config['baseUrl'] . '/ with your preferred browser to learn more.' . PHP_EOL;
+            $message .= PHP_EOL . 'You MUST specify a valid resource and method, with appropriate params.' . PHP_EOL
+                     . 'Try to navigate http://' . $_SERVER['SERVER_NAME'] . $this->_config['baseUrl'] . '/ with your preferred browser to learn more.' . PHP_EOL;
+
+            // Dump debug informations
+            if ($this->_config['debug'])
+            {
+                $message .= 'Internal informations dump' . PHP_EOL;
+                $message .= '==========================' . PHP_EOL;
+                $message .= 'Request URI: ' . $request->uri . PHP_EOL;
+                $message .= 'Method: ' . $request->method . PHP_EOL;
+                $message .= 'Query string: ' . $request->query . PHP_EOL;
+                $message .= 'Data: ' . $request->data . PHP_EOL;
+                $message .= PHP_EOL;
+                $message .= print_r($_SERVER, true) . PHP_EOL;
+            }
 
             $data = array($message);
             $last_modified = time();
