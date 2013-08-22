@@ -175,24 +175,17 @@ class Router
                 $method = explode('.', $parts[1], 2);
                 if (isset($method[1]))
                     $this->_addContentType($method[1], $content_types);
-                /*
-                if (isset($method[1]) && isset(Response::$contentTypes[$method[1]]))
-                {
-                    // Check if already in the array
-                    if (($key = array_search(Response::$contentTypes[$method[1]], $content_types)) !== false)
-                        unset($content_types[$key]);
-                    array_unshift($content_types, Response::$contentTypes[$method[1]]);
-                }
-                */
                 $method = $method[0];
 
                 if ($this->_params['method'] = $this->_resources[$this->_params['resource']]->checkMethod($method))
                 {
                     // Params
-                    if ('GET' == $request->method)
+                    if (('GET' == $request->method) || ('PUT' == $request->method))
                         $data = $request->query;
-                    else
+                    elseif ('POST' == $request->method)
                         $data = $request->data;
+                    else // PUT
+                        $data = $request->data + $request->query; // Is this kind of merge useful?
                         
                     // Check for restful_format
                     if (isset($data['content_type']) && $this->_addContentType($data['content_type'], $content_types))
@@ -210,9 +203,7 @@ class Router
                         unset($data['jsonp']);
                     }
                     else if (empty($data['jsonp']) && ($content_types[0] == Response::$contentTypes['js']))
-                    {
                         $this->_params['jsonp'] = 'parseResponse';
-                    }
 
                     $this->_params['params'] = $this->_resources[$this->_params['resource']]->checkParams($this->_params['method'], $data);
                 }
