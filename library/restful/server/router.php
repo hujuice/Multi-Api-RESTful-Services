@@ -126,7 +126,7 @@ class Router
             }
             else if ('/*' == substr($content_type, -2))
             {
-                $type = substr($content_type, 0, -2); // Now strstr will exclude the needle (see docs)
+                $subtype = substr($content_type, 0, -2); // Now strstr will exclude the needle (see docs)
                 foreach (Response::$contentTypes as $allowed)
                 {
                     if (strstr($allowed, '/', true) == $subtype)
