@@ -127,7 +127,7 @@ class Request
         if (in_array($_SERVER['REQUEST_METHOD'], self::$httpMethods))
             $this->method = $_SERVER['REQUEST_METHOD'];
         else
-            throw new \Exception('The HTTP method \'' . $_SERVER['REQUEST_METHOD'] . '\' is not implemented.', 405);
+            throw new \Exception('The HTTP method (' . $_SERVER['REQUEST_METHOD'] . ') is not implemented.', 405);
 
         // Uri
         $this->uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
@@ -138,6 +138,7 @@ class Request
             $this->accept = $this->_parseAccept($_SERVER['HTTP_ACCEPT']);
         else
             $this->accept = array('*/*');
+        
         // Query string
         $this->query = $_GET;
 
@@ -169,7 +170,7 @@ class Request
                                 if (UPLOAD_ERR_OK == $error)
                                     $this->data[$name][$key] = array('mime' => $file['type'][$key], 'content' => file_get_contents($file['tmp_name'][$key]));
                                 else
-                                    throw new \Exception('Error ' . $error . ' while uploading the file \'' . $name . '\'. See http://www.php.net/manual/en/features.file-upload.errors.php for the error codes.', 500);
+                                    throw new \Exception('Error (' . $error . ') while uploading (' . $name . '). See http://www.php.net/manual/en/features.file-upload.errors.php for the error codes.', 500);
                             }
                         }
                         else
@@ -177,7 +178,7 @@ class Request
                             if (UPLOAD_ERR_OK == $file['error'])
                                 $this->data[$name] = array('mime' => $file['type'], 'content' => file_get_contents($file['tmp_name']));
                             else
-                                throw new \Exception('Error ' . $file['error'] . ' while uploading the file \'' . $name . '\'. See http://www.php.net/manual/en/features.file-upload.errors.php for the error codes.', 500);
+                                throw new \Exception('Error (' . $file['error'] . ') while uploading (' . $name . '). See http://www.php.net/manual/en/features.file-upload.errors.php for the error codes.', 500);
                         }
                     }
                     break;

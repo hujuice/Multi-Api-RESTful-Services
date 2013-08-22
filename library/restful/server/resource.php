@@ -205,7 +205,7 @@ class Resource
             if (in_array($httpMethod, Request::$httpMethods))
                 $this->_config['httpMethod'] = $httpMethod;
             else
-                throw new \Exception('The resource HTTP method is not allowed.');
+                throw new \Exception('The resource HTTP method (' . $httpMethod . ') is not allowed.');
         }
         else
             $this->_config['httpMethod'] = 'GET';
@@ -215,7 +215,7 @@ class Resource
             if ($max_age >= 0)
                 $this->_config['maxAge'] = (integer) $max_age;
             else
-                throw new \Exception('\'max-age\' MUST be a non-negative integer.');
+                throw new \Exception('\'max-age\' MUST be a non-negative integer (' . $max_age . ' given).');
         }
         else
             $this->_config['maxAge'] = 0;
@@ -229,7 +229,7 @@ class Resource
         {
             $params = $this->_methodParams('__construct');
             if (!is_array($this->_config['construct'] = $this->_mapParams($params, $this->_config['construct'])))
-                throw new \Exception('Invalid constructor arguments: ' . json_encode($this->_config['construct']) . '.');
+                throw new \Exception('Invalid constructor arguments (' . json_encode($this->_config['construct']) . ').');
         }
     }
 
@@ -316,7 +316,7 @@ class Resource
         if ($methodName = $this->checkMethod($method))
             return $this->_methodParams($methodName);
         else
-            throw new \Exception('Unknown method \'' . $method . '\'.');
+            throw new \Exception('Unknown method (' . $method . ').');
     }
 
     /**
@@ -327,7 +327,6 @@ class Resource
      * @param string $method
      * @param array $params
      * @return array
-     * @throw Exception
      */
     public function checkParams($method, array $params)
     {
@@ -350,7 +349,7 @@ class Resource
     public function exec($method, array $params)
     {
         if (!$method = $this->checkMethod($method))
-            throw new \Exception('Unknown method \'' . $method . '\'.');
+            throw new \Exception('Unknown method (' . $method . ').');
 
         if (!is_array($params = $this->checkParams($method, $params)))
             throw new \Exception('Incomplete or bad parameter structure.');

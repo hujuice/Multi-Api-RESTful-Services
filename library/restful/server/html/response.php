@@ -60,7 +60,7 @@ class Response implements htmlInterface
         {
             case 'unknown type':
             case 'resource':
-                throw new \Exception('Unsupported data type');
+                throw new \Exception('Unsupported data type (' . json_encode($data) . ').');
             case 'NULL':
                 $html .= 'NULL';
                 break;
@@ -92,7 +92,7 @@ class Response implements htmlInterface
                 $html .= '</dl>';
                 break;
             default:
-                throw new \Exception('Unknown data type');
+                throw new \Exception('Unknown data type (' . json_encode($data) . ').');
         }
         $html .= '</div>';
         return $html;

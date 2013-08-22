@@ -124,6 +124,7 @@ class Response
      * @param string $etag
      * @param array $extra_headers
      * @return void
+     * @throw Exception
      */
     public static function raw($status, $body = null, $content_type = 'text/plain', $max_age = 0, $last_modified = null, $etag = null, $extra_headers = array())
     {
@@ -132,7 +133,7 @@ class Response
 
         // Status
         if (!isset(self::$statuses[$status]))
-            throw new \Exception('Internal status code inconcistency.');
+            throw new \Exception('Invalid status code (' . $status . ').');
         else
             $headers[] = self::$statuses[$status];
 
@@ -144,7 +145,7 @@ class Response
         if (in_array($content_type, self::$contentTypes))
             $headers[] = 'Content-Type: ' . $content_type;
         else
-            throw new \Exception('Internal Content-Type inconcistency.');
+            throw new \Exception('Invalid Content-Type (' . $content_type . ').');
 
         // Cache headers
         if ($max_age && ($max_age > 0))

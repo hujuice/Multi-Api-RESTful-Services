@@ -95,6 +95,7 @@ class Router
      *
      * @param Restful\Server\Request $request
      * @return boolean
+     * @throw Exception
      */
     public function route(Request $request)
     {
@@ -202,7 +203,7 @@ class Router
                     {
                         // Add a hard control over the $data['jsonp'] value (risk of JS injection)
                         if (preg_match('/[^\w]/', $data['jsonp']))
-                            throw new Exception('Please, provide a valid function name for jsonp.');
+                            throw new Exception('Please, provide a valid function name for jsonp: word character only (' . $data['jsonp'] . ' given).');
 
                         $content_types = array(Response::$contentTypes['js']);
                         $this->_params['jsonp'] = $data['jsonp'];

@@ -190,7 +190,7 @@ class Server
             {
                 $resourceName = strtolower($resourceName);
                 if (('discover' == $resourceName) || ('ui' == $resourceName))
-                    throw new \Exception('The \'' . $resourceName . '\' resource name is reserved for internal purposes.', 500);
+                    throw new \Exception('The resource name (' . $resourceName . ') is reserved for internal purposes.', 500);
                 $this->_resources[$resourceName] = new Server\Resource\User($resourceName, $resourceConfig);
             }
         }

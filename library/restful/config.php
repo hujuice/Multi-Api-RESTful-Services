@@ -80,7 +80,7 @@ class Config implements \Iterator
                             $config[$parts[0]] = array($parts[1] => $value);
                     }
                     else
-                        throw new \Exception('Invalid configuration key.');
+                        throw new \Exception('Invalid configuration key (' . $key . ').');
 
                     unset($config[$key]);
                 }
@@ -89,8 +89,9 @@ class Config implements \Iterator
             // Redo for each key
             foreach ($config as & $value)
                 $value = $this->_expandKeys($value);
+                
+            return $config;
         }
-        return $config;
     }
 
     /**
