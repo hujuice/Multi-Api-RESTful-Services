@@ -89,7 +89,7 @@ class Html
 <li>adding an "extension" to the requested method; e.g., if you want that the <span class="console">members/getplanets</span> will output in XML, you can ask for <span class="console">members/getplanets<strong>.xml</strong>?yourquerystring</span>.</li>
 </ol>
 <p>The preferred way, in the HTTP paradigma, is the <span class="console">Accept:</span> way. There\'s a lot of useful borowser plugins to easly manage the <span class="console">Accept</span> header during consuming development. A good choice is <em><a href="http://www.garethhunt.com/modifyheaders/">Modify Headers</a></em> for <a href="http://www.mozilla.org/firefox">Firefox</a>.</p>
-<p>Beside this, the <em>discovery</em> services help both human and machines to explore the services signature and behaviour.</p>
+<p>Beside this, the <em>discovery</em> services helps both human and machines to explore the services signature and behaviour.</p>
 </div>';
         
         return $body;
